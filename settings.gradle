@@ -1,0 +1,2 @@
+// Defines the project name and any submodules
+rootProject.name = 'bareServer'
