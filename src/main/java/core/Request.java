@@ -1,11 +1,15 @@
-package core.record;
+package core;
 
-import java.util.Map;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.List;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  *
  * Package Name: core.record
- * File Name: HttpResponse
+ * File Name: Request
  * Description:
  * author: munke
  *
@@ -18,10 +22,12 @@ import java.util.Map;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public record HttpResponse(
-    String version,
-    int statusCode,
-    String statusMessage,
-    Map<String, Object> header,
-    String body) implements HttpMessage {
+public record Request(
+    String method,
+    String path,
+    List<QueryString> queryStrings,
+    String httpVersion,
+    List<Header> headers,
+    byte[] body,
+    PrintWriter writer) {
 }

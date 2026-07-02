@@ -1,14 +1,17 @@
-package controller;
+package core;
+
+import java.io.PrintWriter;
+import java.util.List;
 
 /**
  *
- * Package Name: controller
- * File Name: BareController
+ * Package Name: core.record
+ * File Name: Response
  * Description:
  * author: munke
  *
  * @version 1.0
- * @see controller
+ * @see core.record
  * @since 2026-07-01
  * <p>
  * Modification Information
@@ -16,5 +19,10 @@ package controller;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public class BareController {
+public record Response(
+    String version,
+    int statusCode,
+    List<Header> headers,
+    byte[] body,
+    PrintWriter writer) {
 }

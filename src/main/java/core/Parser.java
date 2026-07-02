@@ -1,90 +1,35 @@
 package core;
 
-import core.record.HttpMessage;
-import core.record.HttpMessageType;
-import core.record.HttpRequest;
-
-import java.io.*;
-import java.net.Socket;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static core.record.Constants.CRLF;
+import static core.Constants.CRLF;
 
 /**
  *
  * Package Name: core
- * File Name: ClientHandler
+ * File Name: Parser
  * Description:
+ *  1. byte stream 형태의 http message를 Request 객체로 parsing
+ *  2. Request 객체를 byte stream 형태의 http message로 parsing
  * author: munke
  *
  * @version 1.0
  * @see core
- * @since 2026-07-01
+ * @since 2026-07-02
  * <p>
  * Modification Information
  * 수정일          수정자                    수정내용
  * --------- ------------------- -------------------------------
- * 2026-07-01        munke                   최초개정
+ * 2026-07-02        munke                   최초개정
  */
-public class ClientHandler implements Runnable {
-    private final Socket clientSocket;
-    private final InputStream inputStream;
-    private final OutputStream outputStream;
-    private HttpRequest httpRequest;
-    private HttpRequest httpResponse;
-
-    // Constructor
-    ClientHandler(Socket clientSocket) throws IOException {
-        this.clientSocket = clientSocket;
-        this.inputStream = clientSocket.getInputStream();
-        this.outputStream = clientSocket.getOutputStream();
-    }
-
-    @Override
-    public void run() {
-        System.out.println("""  
-            ClientHandler is running...getAllThread() : %s  
-            """
-            .formatted(Thread.getAllStackTraces()));
-
-        // 파싱 + etc + 응답
-        try {
-            StringBuilder requestMessage = new StringBuilder();
-            String requestLine;
-            boolean transferEncodingChunked = false;
-            int contentLength = 0;
-            // 1. request startLine
-            String requestStartLine = inputStream
-            byte
-
-            // byte stream parsing
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        // 자원해제
-        try {
-            inputStream.close();
-            outputStream.close();
-            clientSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        // http message를 바이트스트림으로부터 읽어서 가공
-        HttpRequest httpRequest = new HttpRequest("", "", "", new HashMap<>());
-        Map<String, Object> rawHttp = parse2Http(new BufferedInputStream(clientSocket.getInputStream()));
-
-
-    }
-
-    private void readRequest() {
-//        BufferedInputStream inputStream = new BufferedInputStream(this.clientSocket.getInputStream());
-
+public class Parser {
+    public static Request parse(InputStream inputStream) {
         // http request message 파싱
         StringBuilder requestMessage = new StringBuilder();
         String requestLine;
@@ -153,5 +98,10 @@ public class ClientHandler implements Runnable {
         }
         System.out.println("requestMessage = " + requestMessage);
         return requestMessage.toString();
+    }
+
+    public static String parse(Response response) {
+        return "";
+
     }
 }

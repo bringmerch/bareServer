@@ -1,0 +1,4 @@
+port: 8080
+root-path: /api
+host: localhost
+thread-pool-size: 10

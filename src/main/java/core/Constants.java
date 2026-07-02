@@ -1,4 +1,4 @@
-package core.record;
+package core;
 
 /**
  *
@@ -17,10 +17,13 @@ package core.record;
  * 2026-07-01        munke                   최초개정
  */
 public enum Constants {
+    //
     CRLF("\r\n"),
 
+    //
     HTTP_VERSION("HTTP/1.1"),
 
+    //
     HTTP_METHOD_GET("GET"),
     HTTP_METHOD_POST("POST"),
     HTTP_METHOD_PUT("PUT"),
