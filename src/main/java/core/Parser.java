@@ -30,7 +30,7 @@ import static core.Constants.CRLF;
  */
 public class Parser {
     public static Request parse(InputStream inputStream) {
-        // http request message 파싱
+        InputStreamReader inputStream
         StringBuilder requestMessage = new StringBuilder();
         String requestLine;
         boolean transferEncodingChunked = false;

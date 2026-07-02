@@ -21,14 +21,11 @@ import java.nio.charset.StandardCharsets;
  * 2026-07-01        munke                   최초개정
  */
 public class Processor implements Runnable {
-    final Socket socket;
     final InputStream inputStream;
     final OutputStream outputStream;
     final BufferedWriter bufferedWriter;
 
     Processor(Socket socket) throws IOException {
-        this.socket = socket;
-        ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), socket);
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
