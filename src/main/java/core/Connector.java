@@ -32,7 +32,7 @@ public class Connector {
         while (!serverSocket.isClosed()) {
             Socket socket = serverSocket.accept();
             ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), socket);
-            new Thread(new Processor(socket)).start();
+            new Thread(new ConnectionHandler(socket)).start();
         }
 
         ClosableRegistry.closeAllResource();

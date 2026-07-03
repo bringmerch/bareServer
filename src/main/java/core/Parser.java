@@ -3,6 +3,7 @@ package core;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -29,8 +30,17 @@ import static core.Constants.CRLF;
  * 2026-07-02        munke                   최초개정
  */
 public class Parser {
-    public static Request parse(InputStream inputStream) {
-        InputStreamReader inputStream
+    ByteBuffer byteBuffer;
+
+    Parser() {
+        byteBuffer = ByteBuffer.allocate(8192);
+    }
+
+    public Request parse(InputStream inputStream) {
+        1. stream.read(buffer)
+        2. buffer.flip( read mode 전환 )
+
+        ByteBuffer byteBuffer = new ByteBuffer();
         StringBuilder requestMessage = new StringBuilder();
         String requestLine;
         boolean transferEncodingChunked = false;
@@ -100,8 +110,13 @@ public class Parser {
         return requestMessage.toString();
     }
 
-    public static String parse(Response response) {
+    public String parse(Response response) {
         return "";
+
+    }
+
+    // 한바이트씩 parser에 먹임.
+    public void accept(byte b) {
 
     }
 }

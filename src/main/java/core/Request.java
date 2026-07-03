@@ -1,10 +1,6 @@
 package core;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.List;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  *
@@ -22,12 +18,21 @@ import java.net.URL;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public record Request(
-    String method,
-    String path,
-    List<QueryString> queryStrings,
-    String httpVersion,
-    List<Header> headers,
-    byte[] body,
-    PrintWriter writer) {
+public class Request {
+    String method;
+    String path;
+    List<QueryString> queryStrings;
+    String httpVersion;
+    List<Header> headers;
+    byte[] body;
+    List<byte[]> files;
+    final Connector connector;
+
+    Request(Connector connector) {
+        this.connector = connector;
+    }
+
+    public void recycle() {
+        //reset fields
+    }
 }

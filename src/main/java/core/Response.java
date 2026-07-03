@@ -23,6 +23,5 @@ public record Response(
     String version,
     int statusCode,
     List<Header> headers,
-    byte[] body,
-    PrintWriter writer) {
+    byte[] body) {
 }

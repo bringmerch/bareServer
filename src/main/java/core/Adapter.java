@@ -3,7 +3,7 @@ package core;
 /**
  *
  * Package Name: core
- * File Name: Ship
+ * File Name: Adapter
  * Description:
  * author: munke
  *
@@ -17,7 +17,7 @@ package core;
  * 2026-07-02        munke                   최초개정
  */
 // TODO 매핑 따라서 컨테이너로 요청 던짐
-public class Ship {
+public class Adapter {
     public Response deliver(Request request) {
         Clerk clerk = new Clerk(request);
         return clerk.doGet();
