@@ -28,7 +28,7 @@ public class ClosableRegistry {
         threadId2resources.computeIfAbsent(threadId, t -> new ArrayList<>()).add(resource);
     }
 
-    public static void closeAllResource() {
+    public static void closeAllResource() throws RuntimeException {
         threadId2resources.keySet().forEach(threadId -> {
             threadId2resources.get(threadId).forEach(resource -> {
                 try {
@@ -36,6 +36,7 @@ public class ClosableRegistry {
                 } catch (Exception e) {
                     // 부분 close 허용
                     e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             });
         });

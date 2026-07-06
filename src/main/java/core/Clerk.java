@@ -26,6 +26,6 @@ public class Clerk {
 
     public Response doGet() {
 //        return request.get();
-
+        return null;
     }
 }

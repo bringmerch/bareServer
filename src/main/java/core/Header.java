@@ -19,12 +19,12 @@ import java.util.List;
  * 2026-07-02        munke                   최초개정
  */
 public record Header(
-    String name,
-    List<Value> values
+    String fieldName,
+    List<FieldValue> fieldValues
 ) {
-    public record Value (
-        String value,
-        List<String> attributes
+    public record FieldValue (
+        String member,
+        List<String> parameters
     ) {
     }
 }

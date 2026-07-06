@@ -1,25 +1,25 @@
 package core;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
+
 /**
  *
  * Package Name: core
- * File Name: Adapter
+ * File Name: File
  * Description:
  * author: munke
  *
  * @version 1.0
  * @see core
- * @since 2026-07-02
+ * @since 2026-07-06
  * <p>
  * Modification Information
  * 수정일          수정자                    수정내용
  * --------- ------------------- -------------------------------
- * 2026-07-02        munke                   최초개정
+ * 2026-07-06        munke                   최초개정
  */
-public class Adapter {
-    public Response deliver(Request request) {
-        Clerk clerk = new Clerk(request);
-        return clerk.doGet();
-    }
+public class File {
 }
-

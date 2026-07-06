@@ -21,7 +21,7 @@ public enum Constants {
     CRLF("\r\n"),
 
     //
-    HTTP_VERSION("HTTP/1.1"),
+    HTTP_VERSION__1_1("HTTP/1.1"),
 
     //
     HTTP_METHOD_GET("GET"),

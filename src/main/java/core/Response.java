@@ -5,13 +5,13 @@ import java.util.List;
 
 /**
  *
- * Package Name: core.record
+ * Package Name: core
  * File Name: Response
  * Description:
  * author: munke
  *
  * @version 1.0
- * @see core.record
+ * @see core
  * @since 2026-07-01
  * <p>
  * Modification Information
