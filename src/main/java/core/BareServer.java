@@ -22,5 +22,6 @@ public class BareServer {
     // application start
     public static void main(String[] args) throws IOException {
         new Connector().start();
+        System.out.println("BareServer started...");
     }
 }

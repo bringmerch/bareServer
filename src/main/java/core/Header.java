@@ -20,11 +20,5 @@ import java.util.List;
  */
 public record Header(
     String fieldName,
-    List<FieldValue> fieldValues
-) {
-    public record FieldValue (
-        String member,
-        List<String> parameters
-    ) {
-    }
-}
+    String fieldValue
+) {}

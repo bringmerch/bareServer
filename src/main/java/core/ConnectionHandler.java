@@ -78,46 +78,57 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    private int fillBuffer() {
-        byte[] tempByteArr = new byte[inputBuffer.remaining()];
-
-        try {
-            int read = clientInputStream.read(tempByteArr);
-
-            if (read > 0)
-                inputBuffer.put(tempByteArr, 0, read);
-
-            return read;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
 
     private boolean frame() {
         String rawStartLine = this.readStartLine();
-        parseStartLine(rawStartLine);
 
         String rawHeader = this.readHeader();
         parseHeader(rawHeader);
+        parseStartLine(rawStartLine);
 
         // TODO body 읽기
 
         return true;
     }
 
+    private int fillInputBuffer() {
+        byte[] tempByteArr = new byte[inputBuffer.remaining()]; // TODO 읽기모드인지 쓰기모드인지 알아야 됨.
+        int read;
+
+        inputBuffer.rewind();
+
+        try {
+            read = clientInputStream.read(tempByteArr);
+            if (read > 0)
+                inputBuffer.put(tempByteArr, 0, read);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return read;
+    }
+
     private String readStartLine() throws RuntimeException {
         byte b;
         StringBuilder rawStartLine = new StringBuilder();
         boolean metNewLine = false; // start line의 끝을 의미하는 개행문자 읽었는지
+        int read = this.fillInputBuffer();
+
+        if (read <= 0)
+            throw new RuntimeException("invalid http message start line. empty message.");
+
+        inputBuffer.flip(); // 읽기 모드 진입
 
         while (true) {
-            int read = this.fillBuffer();
+            if (read == 0) {
+                read = this.fillInputBuffer();
 
-            if (read <= 0)
-                break;
+                if (read <= 0)
+                    break;
 
-            inputBuffer.flip(); // 읽기모드 진입
+                inputBuffer.flip(); // 읽기모드 진입
+            }
 
             for (int i = 0; i < read ; i++) {
                 b = inputBuffer.get();
@@ -127,6 +138,7 @@ public class ConnectionHandler implements Runnable {
 
                 if (b == '\n') { // 개행문자까지 읽는다.
                     metNewLine = true;
+                    read = read - (i + 1); // buffer에 있는데 아직 안 읽은 바이트수
                     break;
                 } else {
                     rawStartLine.append((char)b);
@@ -135,7 +147,7 @@ public class ConnectionHandler implements Runnable {
         }
 
         if (rawStartLine.isEmpty() || !metNewLine)
-            throw new RuntimeException("invalid http message start line");
+            throw new RuntimeException("invalid http message start line. startline must be ended with new line.");
 
         return rawStartLine.toString();
     }
@@ -144,27 +156,29 @@ public class ConnectionHandler implements Runnable {
         String[] parts = rawStartLine.toString().split(" ");
 
         if (parts.length != 3)
-            throw new RuntimeException("invalid http message start line");
+            throw new RuntimeException("invalid http message start line. start line must be 3 parts.");
 
         this.request.setMethod(Method.from(parts[0]));
+        URI uri;
+        URL url;
+
+        List<Header> hosts = this.request.getHeaders("Host");
+        if (hosts.isEmpty() || hosts.size() > 1)
+            throw new RuntimeException("invalid host header.");
+        String host = hosts.get(0).fieldValue();
+
+        String path = parts[1];
+        boolean isAbsoluteUrl = path.startsWith("http://") || path.startsWith("https://");
+        boolean isPath = !isAbsoluteUrl && path.startsWith("/");
+
+        if (!(isAbsoluteUrl || isPath))
+            throw new RuntimeException("invalid http message start line. path must start with / or scheme.");
+
+        String urlString = isPath ? host + path : path;
 
         try {
-            URI uri = URI.create(parts[1]);
-            URL url = uri.toURL();
-            this.request.setPath(url.getPath());
-            String query = url.getQuery();
-
-            if (query != null) {
-                String[] pairs = query.split("&");
-
-                for (String pair : pairs) {
-                    String[] keyValue = pair.split("=");
-                    this.request.addQueryString(new QueryString(keyValue[0], keyValue[1]));
-                }
-            }
-
-            if (!parts[2].equalsIgnoreCase("HTTP/1.1"))
-                throw new RuntimeException("invalid http version.");
+            uri = URI.create(urlString);
+            url = uri.toURL();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             throw new RuntimeException("URL parsing failed.");
@@ -172,6 +186,21 @@ public class ConnectionHandler implements Runnable {
             e.printStackTrace();
             throw new RuntimeException("MalformedUrlException occurred.");
         }
+
+        this.request.setPath(url.getPath());
+        String query = url.getQuery();
+
+        if (query != null) {
+            String[] pairs = query.split("&");
+
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                this.request.addQueryString(new QueryString(keyValue[0], keyValue[1]));
+            }
+        }
+
+        if (!parts[2].equalsIgnoreCase("HTTP/1.1"))
+            throw new RuntimeException("invalid http version. must be HTTP/1.1.");
     }
 
     private String readHeader() throws RuntimeException {
@@ -179,13 +208,28 @@ public class ConnectionHandler implements Runnable {
         StringBuilder rawHeaderLines = new StringBuilder();
         int newLineCounter = 0;
 
-        while (true) {
-            int read = this.fillBuffer();
+        this.inputBuffer.flip(); // 읽기모드 진입
+
+        int read = inputBuffer.remaining();
+
+        if (read == 0) {
+            read = this.fillInputBuffer();
 
             if (read <= 0)
-                break;
+                throw new RuntimeException("invalid header lines. empty message.");
+        }
 
-            inputBuffer.flip(); // 읽기모드 진입
+        inputBuffer.flip(); // 읽기 모드 진입
+
+        while (true) {
+            if (read == 0) {
+                read = this.fillInputBuffer();
+
+                if (read <= 0)
+                    break;
+
+                inputBuffer.flip(); // 읽기 모드 진입
+            }
 
             for (int i = 0 ; i < read ; i++) {
                 b = inputBuffer.get();
@@ -195,8 +239,10 @@ public class ConnectionHandler implements Runnable {
 
                 rawHeaderLines.append((char)b);
 
-                if (b == '\n' && ++newLineCounter >= 2)  // 개행문자 = 해당 headerLine 끝
+                if (b == '\n' && ++newLineCounter >= 2) {  // 개행문자 = 해당 headerLine 끝
+                    read = read - (i + 1); // buffer로부터 읽어들인 것 중 처리 안 된 바이트 수 세팅
                     break;
+                }
             }
         }
 
@@ -216,19 +262,8 @@ public class ConnectionHandler implements Runnable {
                 throw new RuntimeException("invalid Header. parsing failed.");
             String fieldName = pair[0];
             String fieldValue = pair[1];
-            List<Header.FieldValue> fieldValues = new ArrayList<>();
-
-            for (String member : fieldValue.split(",")) {
-                List<String> parameters = new ArrayList<>();
-
-                for (String parameter : member.split(";")) {
-                    parameters.add(parameter.trim());
-                }
-
-                fieldValues.add(new Header.FieldValue(member, parameters));
-            }
-
-            this.request.addHeader(new Header(fieldName, fieldValues));
+            //TODO 멀티밸류
+            this.request.addHeader(new Header(fieldName, fieldValue));
         }
     }
 

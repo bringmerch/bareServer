@@ -26,7 +26,7 @@ public enum Api {
     List<Method> allowMethods;
     String url;
 
-    Api(String path, List allowMethods, String url) {
+    Api(String path, List<Method> allowMethods, String url) {
         this.path = path;
         this.allowMethods = allowMethods;
         this.url = url;

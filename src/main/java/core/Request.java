@@ -50,13 +50,14 @@ public class Request {
         this.queryStrings.add(queryString);
     }
 
-    public Header getHeader(String fieldName) {
+    public List<Header> getHeaders(String fieldName) {
+        List<Header> headers = new ArrayList<>();
         for (Header header : this.headers) {
             if (header.fieldName().equalsIgnoreCase(fieldName)) {
-                return header;
+                headers.add(header);
             }
         }
-        return null;
+        return headers;
     }
 
     public void recycle() {
