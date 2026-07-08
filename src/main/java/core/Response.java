@@ -1,6 +1,7 @@
 package core;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,9 +20,25 @@ import java.util.List;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public record Response(
-    String version,
-    int statusCode,
-    List<Header> headers,
-    byte[] body) {
+public class Response {
+    String version;
+    int statusCode;
+    List<Header> headers = new ArrayList<>();
+    byte[] body;
+
+    public void setVersion(String version){
+        this.version = version;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public void setHeader(Header header) {
+        this.headers.add(header);
+    }
+
+    public void setBody(byte[] bytes, boolean isEnd, String boundary) {
+
+    }
 }

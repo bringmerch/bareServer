@@ -6,7 +6,9 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.io.File;
 
 /**
  *
@@ -24,34 +26,32 @@ import java.util.*;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-
-/**
- *
- * Request 하나가 완성이 되면 adapter를 호출하고 adapter가 컨트롤러를 호출하게 한다.
- * Adapter로부터 받은 response를 byte로 바꾸고 outputStream에 흘려보내기 위해 OutputBuffer를 이용한다.
- * 응답 다 했으면  request 비운다(recycle) & 버퍼 compact.
- * connection keep 여부에 따라 client 소켓을 닫고 inputBuffer, outputBuffer 날린다(필요시?).
- */
 public class ConnectionHandler implements Runnable {
-    final Socket clientSocket;
-    final InputStream clientInputStream;
-    final ByteBuffer inputBuffer;
-    final ByteBuffer outputBuffer;
+    private final Socket clientSocket;
+    private final InputStream inputStream;
+    private final BufferedOutputStream bufferedOutputStream;
+    private final ByteBuffer inputBuffer;
     private Request request;
+    private Response response;
+    private final FileManager fileManager;
 
     ConnectionHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-        this.clientInputStream = getClientInputStream();
+        this.inputStream = getClientInputStream();
+        this.bufferedOutputStream = new BufferedOutputStream(getClientOutputStream(), 8192);
         this.inputBuffer = ByteBuffer.allocate(8192);
         this.inputBuffer.flip();
-        this.outputBuffer = ByteBuffer.allocate(8192);
-        this.inputBuffer.flip();
+        fileManager = new FileManager();
     }
 
     public void run() {
         while (!clientSocket.isClosed()) {
            this.request = new Request();
 
+            System.out.println("run....");
+            // 1. 요청 프레이밍
+            // TODO 쓰레기요청 무시
+            // TODO 요청 body 파싱
             if (!frame()) {
                 try {
                     clientSocket.close();
@@ -60,20 +60,26 @@ public class ConnectionHandler implements Runnable {
                 }
             }
 
+            // 2. 비즈니스로직
             // TODO 어댑터 호출
             // Adapter adapter = new Adapter();
             // String response = parser.parse(adapter.deliver(this.request));
 
-            // TODO 응답 쓰기
+            // 3. 응답
+            try {
+                this.writeResponse();
+            } catch (IOException e) {
+                throw new RuntimeException("writeResponse failed.");
+            }
 
-
+            // 4. 다음 요청 준비
             // TODO 같은 클라이언트(host:port)의 다음 요청 들을 준비
             // if (keepAlive)
         }
     }
 
-
     private boolean frame() {
+        System.out.println("frame...");
         String rawStartLine = this.readStartLine();
         String rawHeader = this.readHeader();
         parseHeader(rawHeader);
@@ -91,7 +97,7 @@ public class ConnectionHandler implements Runnable {
         this.inputBuffer.clear();
 
         try {
-            read = clientInputStream.read(tempByteArr);
+            read = inputStream.read(tempByteArr);
             if (read > 0)
                 this.inputBuffer.put(tempByteArr, 0, read);
         } catch (IOException e) {
@@ -207,6 +213,7 @@ public class ConnectionHandler implements Runnable {
     }
 
     private String readHeader() throws RuntimeException {
+        System.out.println("readHeader...");
         byte b;
         StringBuilder rawHeaderLines = new StringBuilder();
         boolean fin = false; // header 읽기 종료 여부
@@ -270,6 +277,8 @@ public class ConnectionHandler implements Runnable {
     private void parseHeader(String rawHeader) {
         String[] headers = rawHeader.split("\n");
 
+        System.out.println("rawHeader = " + rawHeader);
+
         for (String h : headers) {
             String[] pair = h.split(":", 2);
             if (pair.length != 2)
@@ -283,5 +292,60 @@ public class ConnectionHandler implements Runnable {
 
     private InputStream getClientInputStream() throws IOException {
         return this.clientSocket.getInputStream();
+    }
+
+    private OutputStream getClientOutputStream() throws IOException {
+        return this.clientSocket.getOutputStream();
+    }
+
+    private void writeResponse() throws IOException {
+        System.out.println("writeResponse....");
+        File file;
+        FileInputStream fileInputStream;
+
+        try {
+            file = this.fileManager.loadHtmlFile("/hello.html");
+            fileInputStream = new FileInputStream(file);
+        } catch (IOException e) {
+            throw new RuntimeException("load html file failed.");
+        }
+
+        if (file == null || fileInputStream == null)
+            throw new RuntimeException("file reading failed.");
+
+        long contentLength = file.length();
+        long sent = 0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("""
+                HTTP/1.1 200\r
+                Content-Type: text/plain\r
+                Content-Length: %d\r
+                \r
+                """.formatted(contentLength));
+        this.bufferedOutputStream.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+
+        System.out.println("response header ===> " + sb.toString().getBytes(StandardCharsets.UTF_8));
+
+        while(true) {
+            byte[] temp = new byte[8192];
+            int read = fileInputStream.read(temp);
+            if(read > 0)
+                this.bufferedOutputStream.write(temp, 0, read);
+            else
+                break;
+
+            sent = sent + read;
+
+            if (sent == contentLength)
+                break;
+
+            if (sent > contentLength)
+                throw new RuntimeException("sent can't exceed contentLength.");
+
+            System.out.println(new String(temp, StandardCharsets.UTF_8));
+        }
+        fileInputStream.close();
+        this.bufferedOutputStream.flush();
     }
 }

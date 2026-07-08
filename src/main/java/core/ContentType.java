@@ -17,8 +17,8 @@ package core;
  * 2026-07-06        munke                   최초개정
  */
 public enum ContentType {
-    CONTENT_TYPE__TEXT_HTML("text/html"),
-    CONTENT_TYPE__TEXT_PLAIN("text/plain");
+    TEXT_HTML("text/html"),
+    TEXT_PLAIN("text/plain");
 
     String value;
 
