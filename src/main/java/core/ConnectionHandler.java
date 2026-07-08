@@ -6,8 +6,6 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -30,11 +28,8 @@ import java.util.*;
 /**
  *
  * Request 하나가 완성이 되면 adapter를 호출하고 adapter가 컨트롤러를 호출하게 한다.
- *
  * Adapter로부터 받은 response를 byte로 바꾸고 outputStream에 흘려보내기 위해 OutputBuffer를 이용한다.
- *
  * 응답 다 했으면  request 비운다(recycle) & 버퍼 compact.
- *
  * connection keep 여부에 따라 client 소켓을 닫고 inputBuffer, outputBuffer 날린다(필요시?).
  */
 public class ConnectionHandler implements Runnable {
@@ -42,46 +37,44 @@ public class ConnectionHandler implements Runnable {
     final InputStream clientInputStream;
     final ByteBuffer inputBuffer;
     final ByteBuffer outputBuffer;
-    final Charset defaultCharSet = StandardCharsets.UTF_8;
     private Request request;
 
     ConnectionHandler(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
         this.clientInputStream = getClientInputStream();
-        inputBuffer = ByteBuffer.allocate(8192);
-        outputBuffer = ByteBuffer.allocate(8192);
+        this.inputBuffer = ByteBuffer.allocate(8192);
+        this.inputBuffer.flip();
+        this.outputBuffer = ByteBuffer.allocate(8192);
+        this.inputBuffer.flip();
     }
 
     public void run() {
         while (!clientSocket.isClosed()) {
-           if (this.request == null) {
-               this.request = new Request();
-           }
-           if (!frame())
-               break;
+           this.request = new Request();
+
+            if (!frame()) {
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("request framing failed.");
+                }
+            }
 
             // TODO 어댑터 호출
             // Adapter adapter = new Adapter();
             // String response = parser.parse(adapter.deliver(this.request));
 
             // TODO 응답 쓰기
-            // try {
-            //     bufferedWriter.write(response);
-            //     bufferedWriter.flush();
-            // } catch (IOException e) {
-            //     throw new RuntimeException(e);
-            // }
 
-            // TODO request 재활용, 다음 요청 들을 준비
+
+            // TODO 같은 클라이언트(host:port)의 다음 요청 들을 준비
             // if (keepAlive)
-            // this.nextRequest();
         }
     }
 
 
     private boolean frame() {
         String rawStartLine = this.readStartLine();
-
         String rawHeader = this.readHeader();
         parseHeader(rawHeader);
         parseStartLine(rawStartLine);
@@ -92,15 +85,15 @@ public class ConnectionHandler implements Runnable {
     }
 
     private int fillInputBuffer() {
-        byte[] tempByteArr = new byte[inputBuffer.remaining()]; // TODO 읽기모드인지 쓰기모드인지 알아야 됨.
+        byte[] tempByteArr = new byte[this.inputBuffer.capacity()];
         int read;
 
-        inputBuffer.rewind();
+        this.inputBuffer.clear();
 
         try {
             read = clientInputStream.read(tempByteArr);
             if (read > 0)
-                inputBuffer.put(tempByteArr, 0, read);
+                this.inputBuffer.put(tempByteArr, 0, read);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -112,48 +105,58 @@ public class ConnectionHandler implements Runnable {
     private String readStartLine() throws RuntimeException {
         byte b;
         StringBuilder rawStartLine = new StringBuilder();
-        boolean metNewLine = false; // start line의 끝을 의미하는 개행문자 읽었는지
-        int read = this.fillInputBuffer();
+        boolean fin = false; // start line 읽기 종료 여부
+        int read = this.inputBuffer.remaining();
+        int remaining;
 
-        if (read <= 0)
-            throw new RuntimeException("invalid http message start line. empty message.");
+        if (read == 0) {
+            read = this.fillInputBuffer();
 
-        inputBuffer.flip(); // 읽기 모드 진입
+            if (read <= 0)
+                throw new RuntimeException("invalid http message start line. empty message.");
 
-        while (true) {
+            this.inputBuffer.flip(); // 읽기 모드 진입
+        }
+
+        while (!fin) {
             if (read == 0) {
                 read = this.fillInputBuffer();
 
                 if (read <= 0)
                     break;
 
-                inputBuffer.flip(); // 읽기모드 진입
+                this.inputBuffer.flip(); // 읽기모드 진입
             }
 
-            for (int i = 0; i < read ; i++) {
-                b = inputBuffer.get();
+            remaining = read;
+            int processed = 0;
+
+            for (int i = 0; i < remaining; i++) {
+                b = this.inputBuffer.get();
+                processed++;
 
                 if (b == '\r') // \r 뒤에 어차피 \n 오니까 먹는다.
                     continue;
 
-                if (b == '\n') { // 개행문자까지 읽는다.
-                    metNewLine = true;
-                    read = read - (i + 1); // buffer에 있는데 아직 안 읽은 바이트수
+                if (b == '\n') {
+                    fin = true;
                     break;
-                } else {
-                    rawStartLine.append((char)b);
                 }
+
+                rawStartLine.append((char)b);
             }
+
+            read = remaining == processed ? 0 : remaining - processed;
         }
 
-        if (rawStartLine.isEmpty() || !metNewLine)
-            throw new RuntimeException("invalid http message start line. startline must be ended with new line.");
+        if (rawStartLine.isEmpty())
+            throw new RuntimeException("invalid http message start line.");
 
         return rawStartLine.toString();
     }
 
     private void parseStartLine(String rawStartLine) {
-        String[] parts = rawStartLine.toString().split(" ");
+        String[] parts = rawStartLine.split(" ");
 
         if (parts.length != 3)
             throw new RuntimeException("invalid http message start line. start line must be 3 parts.");
@@ -163,9 +166,9 @@ public class ConnectionHandler implements Runnable {
         URL url;
 
         List<Header> hosts = this.request.getHeaders("Host");
-        if (hosts.isEmpty() || hosts.size() > 1)
+        if (hosts.size() != 1)
             throw new RuntimeException("invalid host header.");
-        String host = hosts.get(0).fieldValue();
+        String host = hosts.getFirst().fieldValue();
 
         String path = parts[1];
         boolean isAbsoluteUrl = path.startsWith("http://") || path.startsWith("https://");
@@ -177,7 +180,7 @@ public class ConnectionHandler implements Runnable {
         String urlString = isPath ? host + path : path;
 
         try {
-            uri = URI.create(urlString);
+            uri = URI.create("http://" + urlString);
             url = uri.toURL();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -206,47 +209,58 @@ public class ConnectionHandler implements Runnable {
     private String readHeader() throws RuntimeException {
         byte b;
         StringBuilder rawHeaderLines = new StringBuilder();
-        int newLineCounter = 0;
-
-        this.inputBuffer.flip(); // 읽기모드 진입
-
-        int read = inputBuffer.remaining();
+        boolean fin = false; // header 읽기 종료 여부
+        int read = this.inputBuffer.remaining();
+        int remaining;
 
         if (read == 0) {
             read = this.fillInputBuffer();
 
             if (read <= 0)
-                throw new RuntimeException("invalid header lines. empty message.");
+                throw new RuntimeException("invalid header lines. at least one header required.");
+
+            this.inputBuffer.flip(); // 읽기 모드 진입
         }
 
-        inputBuffer.flip(); // 읽기 모드 진입
-
-        while (true) {
+        while (!fin) {
             if (read == 0) {
                 read = this.fillInputBuffer();
 
                 if (read <= 0)
                     break;
 
-                inputBuffer.flip(); // 읽기 모드 진입
+                this.inputBuffer.flip(); // 읽기 모드 진입
             }
 
-            for (int i = 0 ; i < read ; i++) {
-                b = inputBuffer.get();
+            remaining = read;
+            int processed = 0;
+
+            boolean prevWasNewLine = false;
+
+            for (int i = 0; i < remaining; i++) {
+                b = this.inputBuffer.get();
+                processed++;
 
                 if (b == '\r') // \r 뒤에 어차피 \n 오니까 먹는다.
                     continue;
 
                 rawHeaderLines.append((char)b);
 
-                if (b == '\n' && ++newLineCounter >= 2) {  // 개행문자 = 해당 headerLine 끝
-                    read = read - (i + 1); // buffer로부터 읽어들인 것 중 처리 안 된 바이트 수 세팅
-                    break;
+                if (b == '\n') {
+                    if (prevWasNewLine) { // 두번연속 new line 나오면 헤더 읽기 종료
+                        fin = true;
+                        break;
+                    }
+                    prevWasNewLine = true;
+                } else {
+                    prevWasNewLine = false;
                 }
             }
+
+            read = remaining == processed ? 0 : remaining - processed;
         }
 
-        if (newLineCounter != 2 || rawHeaderLines.isEmpty()) {
+        if (rawHeaderLines.isEmpty()) {
             throw new RuntimeException("invalid header lines.");
         }
 
@@ -257,11 +271,11 @@ public class ConnectionHandler implements Runnable {
         String[] headers = rawHeader.split("\n");
 
         for (String h : headers) {
-            String[] pair = h.split(":");
+            String[] pair = h.split(":", 2);
             if (pair.length != 2)
                 throw new RuntimeException("invalid Header. parsing failed.");
-            String fieldName = pair[0];
-            String fieldValue = pair[1];
+            String fieldName = pair[0].trim();
+            String fieldValue = pair[1].trim();
             //TODO 멀티밸류
             this.request.addHeader(new Header(fieldName, fieldValue));
         }
