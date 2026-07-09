@@ -1,6 +1,11 @@
 package core;
 
+import core.path.DynamicPath;
+import core.path.Path;
+import core.path.StaticPath;
+
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
@@ -41,29 +46,30 @@ public class ConnectionHandler implements Runnable {
         this.bufferedOutputStream = new BufferedOutputStream(getClientOutputStream(), 8192);
         this.inputBuffer = ByteBuffer.allocate(8192);
         this.inputBuffer.flip();
-        fileManager = new FileManager();
+        this.fileManager = new FileManager();
     }
 
-    public void run() {
+    @Override
+    public void run() throws RuntimeException {
         while (!clientSocket.isClosed()) {
-           this.request = new Request();
+           System.out.println("run....");
 
-            System.out.println("run....");
+           this.request = new Request();
+           this.response = new Response();
+
             // 1. 요청 프레이밍
-            // TODO 쓰레기요청 무시
+            // TODO 요청안오면 소켓종료
             // TODO 요청 body 파싱
             if (!frame()) {
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("request framing failed.");
-                }
+                System.out.println("framing failed.");
+                this.closeClientSocket();
+                break;
             }
 
             // 2. 비즈니스로직
             // TODO 어댑터 호출
-            // Adapter adapter = new Adapter();
-            // String response = parser.parse(adapter.deliver(this.request));
+            // processRequest();
+
 
             // 3. 응답
             try {
@@ -78,16 +84,82 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
+    public Response processRequest() throws RuntimeException {
+        Path path = Adapter.findPath(this.request.getPath());
+        Response response;
+
+        if (path == null) {
+            System.out.println("request processing failed. illegal path.");
+            this.closeClientSocket();
+            throw new RuntimeException();
+        }
+
+        Handler handler = new Handler(path);
+        java.lang.reflect.Method handlerMethod;
+
+        try {
+            handlerMethod = findHandlerMethod(path);
+            response = (Response) handlerMethod.invoke(handler, this.request);
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+            throw new RuntimeException();
+        } catch (NoSuchMethodException e) {
+            System.out.println("find handler method failed. no such method.");
+            throw new RuntimeException();
+        } catch (IllegalAccessException e) {
+            System.out.println("IllegalAccessException");
+            this.closeClientSocket();
+            throw new RuntimeException();
+        } catch (InvocationTargetException e) {
+            System.out.println("InvocationTargetException");
+            this.closeClientSocket();
+            throw new RuntimeException();
+        }
+
+        if (response == null || !response.getIsSucceed()) {
+            System.out.println("process failed.");
+            this.closeClientSocket();
+            throw new RuntimeException();
+        }
+
+        return response;
+    }
+
+    public java.lang.reflect.Method findHandlerMethod(Path path) throws NoSuchMethodException {
+        Class<?> clazz = Handler.class;
+        String method = "";
+
+        if (path instanceof StaticPath)
+            method = "staticHandler";
+        else if (path instanceof DynamicPath)
+            method = ((DynamicPath) path).getHandlerMethod();
+
+        return clazz.getMethod(method, Request.class);
+    }
+
+    public void closeClientSocket() throws RuntimeException {
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException("cannot close clientSocket.");
+        }
+        // TODO closable registry에서 clientSocket 삭제
+    }
+
     private boolean frame() {
         System.out.println("frame...");
-        String rawStartLine = this.readStartLine();
-        String rawHeader = this.readHeader();
-        parseHeader(rawHeader);
-        parseStartLine(rawStartLine);
 
-        // TODO body 읽기
+        try {
+            String rawStartLine = this.readStartLine();
+            String rawHeader = this.readHeader();
+            parseHeader(rawHeader);
+            parseStartLine(rawStartLine);
+            this.request.setIsParsed(true);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
 
-        return true;
+        return this.request.getIsParsed();
     }
 
     private int fillInputBuffer() {
@@ -300,11 +372,12 @@ public class ConnectionHandler implements Runnable {
 
     private void writeResponse() throws IOException {
         System.out.println("writeResponse....");
+
         File file;
         FileInputStream fileInputStream;
 
         try {
-            file = this.fileManager.loadHtmlFile("/hello.html");
+            file = this.fileManager.loadFile(ContentType.TEXT_HTML.resourceDir + StaticPath.HELLO.getFileName());
             fileInputStream = new FileInputStream(file);
         } catch (IOException e) {
             throw new RuntimeException("load html file failed.");
@@ -319,7 +392,7 @@ public class ConnectionHandler implements Runnable {
         StringBuilder sb = new StringBuilder();
         sb.append("""
                 HTTP/1.1 200\r
-                Content-Type: text/plain\r
+                Content-Type: text/html\r
                 Content-Length: %d\r
                 \r
                 """.formatted(contentLength));
@@ -343,8 +416,9 @@ public class ConnectionHandler implements Runnable {
             if (sent > contentLength)
                 throw new RuntimeException("sent can't exceed contentLength.");
 
-            System.out.println(new String(temp, StandardCharsets.UTF_8));
+            System.out.println("temp ===> " + new String(temp, StandardCharsets.UTF_8));
         }
+
         fileInputStream.close();
         this.bufferedOutputStream.flush();
     }

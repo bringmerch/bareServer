@@ -1,7 +1,6 @@
 package core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 /**
  *
@@ -23,12 +22,7 @@ public class FileManager {
     static final String userDir = System.getProperty("user.dir");
     static final String resourceRoot = "/src/main/resources";
 
-    public File loadHtmlFile(String path) throws IOException {
-        return new File(userDir + resourceRoot + "/static/html" + path);
-//        FileInputStream fileInputStream = new FileInputStream(file);
-//        byte[] bytes = fileInputStream.readAllBytes();
-//        for (byte b : bytes) {
-//            System.out.print((char)b);
-//        }
+    public File loadFile(String filePath) throws IOException {
+        return new File(userDir + resourceRoot + filePath);
     }
 }

@@ -21,10 +21,15 @@ import java.util.List;
  * 2026-07-01        munke                   최초개정
  */
 public class Response {
-    String version;
-    int statusCode;
-    List<Header> headers = new ArrayList<>();
-    byte[] body;
+    private String version;
+    private int statusCode;
+    private List<Header> headers = new ArrayList<>();
+    private byte[] body;
+    private boolean isSucceed;
+
+    public boolean getIsSucceed() {
+        return this.isSucceed;
+    }
 
     public void setVersion(String version){
         this.version = version;

@@ -30,9 +30,9 @@ public class Connector {
             ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), serverSocket);
 
         while (!serverSocket.isClosed()) {
-            Socket socket = serverSocket.accept();
-            ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), socket);
-            new Thread(new ConnectionHandler(socket)).start();
+            Socket clientSocket = serverSocket.accept();
+            ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), clientSocket);
+            new Thread(new ConnectionHandler(clientSocket)).start();
         }
 
         ClosableRegistry.closeAllResource();

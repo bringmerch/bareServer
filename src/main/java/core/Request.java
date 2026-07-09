@@ -20,24 +20,28 @@ import java.util.List;
  * 2026-07-01        munke                   최초개정
  */
 public class Request {
-    Method method;
-    String path;
-    List<QueryString> queryStrings = new ArrayList<>();
-    List<Header> headers = new ArrayList<>();
-    byte[] bodies;
+    private Method method;
+    private String path;
+    private List<QueryString> queryStrings = new ArrayList<>();
+    private List<Header> headers = new ArrayList<>();
+    private byte[] bodies;
+    private boolean isParsed;
 
     public void setMethod(Method method) {
         this.method = method;
     }
 
-    public Method getMethod() {
-        return this.method;
+    public void setIsParsed(boolean isParsed) {
+        this.isParsed = isParsed;
+    }
+
+    public boolean getIsParsed() {
+        return isParsed;
     }
 
     public String getPath() {
         return this.path;
     }
-
     public void setPath(String path) {
         this.path = path;
     }

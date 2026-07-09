@@ -1,5 +1,14 @@
 package core;
 
+import core.path.DynamicPath;
+import core.path.Path;
+import core.path.StaticPath;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
  *
  * Package Name: core
@@ -17,9 +26,16 @@ package core;
  * 2026-07-02        munke                   최초개정
  */
 public class Adapter {
-    public Response deliver(Request request) {
-        Clerk clerk = new Clerk(request);
-        return clerk.doGet();
+    public static Path findPath(String requestPath) {
+        Path path = null;
+
+        if (requestPath.startsWith("/static")) {
+            return StaticPath.map.get(requestPath);
+        } else if (requestPath.startsWith("/api")) {
+            return DynamicPath.map.get(requestPath);
+        }
+
+        return path;
     }
 }
 

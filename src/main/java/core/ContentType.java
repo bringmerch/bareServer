@@ -1,5 +1,7 @@
 package core;
 
+import javax.swing.text.AbstractDocument;
+
 /**
  *
  * Package Name: core
@@ -17,22 +19,16 @@ package core;
  * 2026-07-06        munke                   최초개정
  */
 public enum ContentType {
-    TEXT_HTML("text/html"),
-    TEXT_PLAIN("text/plain");
+    TEXT_HTML("text/html", "/static/html/"),
+    TEXT_PLAIN("text/plain", "/static/text/"),
+    IMAGE_JPEG("image/jpeg", "/static/jpg/"),
+    APPLICATION_JSON("application/json", "/static/json/");
 
     String value;
+    String resourceDir;
 
-    ContentType(String value) {
+    ContentType(String value, String resourceDir) {
         this.value = value;
-    }
-
-    public ContentType from(String value) {
-        for (ContentType type : ContentType.values()) {
-            if (type.value.equalsIgnoreCase(value)) {
-                return type;
-            }
-        }
-
-        return null;
+        this.resourceDir = resourceDir;
     }
 }
