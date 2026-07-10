@@ -23,6 +23,7 @@ import java.util.Map;
  */
 public class ClosableRegistry {
     static Map<Long, List<AutoCloseable>> threadId2resources = new HashMap<>();
+    // TODO key로 Main Thread Id가 들어가기 때문에, ServerSocket이 종료됨 - Client Socket Specific으로 바꿀 것!!
 
     public static void addClosableResource(long threadId, AutoCloseable resource) {
         threadId2resources.computeIfAbsent(threadId, t -> new ArrayList<>()).add(resource);

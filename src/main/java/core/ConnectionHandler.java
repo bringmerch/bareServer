@@ -51,14 +51,14 @@ public class ConnectionHandler implements Runnable {
 
     @Override
     public void run() throws RuntimeException {
-        while (!clientSocket.isClosed()) {
+        // TODO clientSocket 꼭 닫기, TCP Connection 재활용 구현 안 한다.
+        while (!clientSocket.isClosed()) { // TODO 무한루프 삭제 요망 (1요청 :  1TCP Connectioon )
            System.out.println("run....");
 
            this.request = new Request();
            this.response = new Response();
 
             // 1. 요청 프레이밍
-            // TODO 요청안오면 소켓종료
             // TODO 요청 body 파싱
             if (!frame()) {
                 System.out.println("framing failed.");
@@ -67,7 +67,7 @@ public class ConnectionHandler implements Runnable {
             }
 
             // 2. 비즈니스로직
-            // TODO 어댑터 호출
+            // TODO 어댑터 호출 - Container에서 경로에 맞는 worker 꺼내서 worker.execute() 요망
             // processRequest();
 
 
@@ -77,10 +77,6 @@ public class ConnectionHandler implements Runnable {
             } catch (IOException e) {
                 throw new RuntimeException("writeResponse failed.");
             }
-
-            // 4. 다음 요청 준비
-            // TODO 같은 클라이언트(host:port)의 다음 요청 들을 준비
-            // if (keepAlive)
         }
     }
 
@@ -284,6 +280,7 @@ public class ConnectionHandler implements Runnable {
             throw new RuntimeException("invalid http version. must be HTTP/1.1.");
     }
 
+    // TODO 헤더까지는 Reader로 읽을 수 없는지?
     private String readHeader() throws RuntimeException {
         System.out.println("readHeader...");
         byte b;
