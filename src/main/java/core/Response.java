@@ -20,30 +20,37 @@ import java.util.List;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public class Response {
-    private String version;
+public class Response<T> {
     private int statusCode;
     private List<Header> headers = new ArrayList<>();
-    private byte[] body;
-    private boolean isSucceed;
-
-    public boolean getIsSucceed() {
-        return this.isSucceed;
-    }
-
-    public void setVersion(String version){
-        this.version = version;
-    }
+    private T body;
 
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
 
-    public void setHeader(Header header) {
+    public int getStatusCode() {
+        return this.statusCode;
+    }
+
+    public void addHeader(Header header) {
         this.headers.add(header);
     }
 
-    public void setBody(byte[] bytes, boolean isEnd, String boundary) {
+    public Header getHeader(String fieldName) {
+        for (Header header : this.headers) {
+            if (header.fieldName().equalsIgnoreCase(fieldName)) {
+                return header;
+            }
+        }
+        return null;
+    }
 
+    public void setBody(T body) {
+        this.body = body;
+    }
+
+    public T getBody() {
+        return this.body;
     }
 }

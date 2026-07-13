@@ -22,7 +22,7 @@ public class FileManager {
     static final String userDir = System.getProperty("user.dir");
     static final String resourceRoot = "/src/main/resources";
 
-    public File loadFile(String filePath) throws IOException {
+    public File loadFile(String filePath) {
         return new File(userDir + resourceRoot + filePath);
     }
 }

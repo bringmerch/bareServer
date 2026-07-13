@@ -17,22 +17,9 @@ package core;
  * 2026-07-01        munke                   최초개정
  */
 public enum Constants {
-    //
     CRLF("\r\n"),
-
-    //
-    HTTP_VERSION__1_1("HTTP/1.1"),
-
-    //
-    HTTP_METHOD_GET("GET"),
-    HTTP_METHOD_POST("POST"),
-    HTTP_METHOD_PUT("PUT"),
-    HTTP_METHOD_DELETE("DELETE"),
-    HTTP_METHOD_HEAD("HEAD"),
-    HTTP_METHOD_OPTIONS("OPTIONS"),
-    HTTP_METHOD_PATCH("PATCH"),
-    HTTP_METHOD_TRACE("TRACE"),
-    HTTP_METHOD_CONNECT("CONNECT");
+    SPACE(" "),
+    EXECUTE("execute");
 
     private final String value;
 

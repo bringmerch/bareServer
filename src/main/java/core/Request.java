@@ -1,7 +1,9 @@
 package core;
 
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  *
@@ -22,10 +24,11 @@ import java.util.List;
 public class Request {
     private Method method;
     private String path;
+    private String[] startline;
     private List<QueryString> queryStrings = new ArrayList<>();
     private List<Header> headers = new ArrayList<>();
-    private byte[] bodies;
     private boolean isParsed;
+    public Socket clientSocket;
 
     public void setMethod(Method method) {
         this.method = method;
@@ -37,6 +40,14 @@ public class Request {
 
     public boolean getIsParsed() {
         return isParsed;
+    }
+
+    public String[] getStartline() {
+        return this.startline;
+    }
+
+    public void setStartline(String[] startline) {
+        this.startline = startline;
     }
 
     public String getPath() {

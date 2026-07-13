@@ -3,6 +3,7 @@ package core;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.function.Consumer;
 
 /**
  *
@@ -27,14 +28,14 @@ public class Connector {
         serverSocket = new ServerSocket(8080);
 
         if (!serverSocket.isClosed())
-            ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), serverSocket);
 
         while (!serverSocket.isClosed()) {
             Socket clientSocket = serverSocket.accept();
-            ClosableRegistry.addClosableResource(Thread.currentThread().threadId(), clientSocket);
-            new Thread(new ConnectionHandler(clientSocket)).start();
+
+            Consumer<Socket> workerExecutor = new ConnectionHandler();
+            workerExecutor.accept(clientSocket);
         }
 
-        ClosableRegistry.closeAllResource();
+        serverSocket.close();
     }
 }

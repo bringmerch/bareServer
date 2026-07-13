@@ -19,16 +19,26 @@ import javax.swing.text.AbstractDocument;
  * 2026-07-06        munke                   최초개정
  */
 public enum ContentType {
-    TEXT_HTML("text/html", "/static/html/"),
-    TEXT_PLAIN("text/plain", "/static/text/"),
-    IMAGE_JPEG("image/jpeg", "/static/jpg/"),
-    APPLICATION_JSON("application/json", "/static/json/");
+    TEXT_HTML("text/html", "/static/html/", ".html"),
+    TEXT_PLAIN("text/plain", "/static/text/", ".txt"),
+    IMAGE_JPEG("image/jpeg", "/static/jpg/", ".jpeg"),
+    APPLICATION_JSON("application/json", "/static/json/", ".json");
 
     String value;
     String resourceDir;
+    String extension;
 
-    ContentType(String value, String resourceDir) {
+    ContentType(String value, String resourceDir, String extension) {
         this.value = value;
         this.resourceDir = resourceDir;
+        this.extension = extension;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public String getExtension() {
+        return this.extension;
     }
 }
