@@ -18,19 +18,11 @@ import java.io.IOException;
  * --------- ------------------- -------------------------------
  * 2026-07-13        munke                   최초개정
  */
-public interface Worker {
-    void execute();
-
-    void read() throws IOException;
-    void write() throws IOException;
-
-    void doProcess() throws IOException;
-    void doGet() throws IOException;
+public interface Worker<T> {
+    void execute(DataProcessor dataProcessor) throws IOException;
+    Response doProcess(Request request) throws IOException;
+    T doGet(Request request) throws IOException;
     void doPost() throws IOException;
     void doPut() throws IOException;
     void doDelete() throws IOException;
-
-    Request getRequest();
-    Response getResponse();
-    DataProcessor getDataProcessor();
 }

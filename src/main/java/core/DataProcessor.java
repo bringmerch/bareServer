@@ -29,15 +29,26 @@ public class DataProcessor {
     DataProcessor(Socket clientSocket) throws IOException {
         this.inputBuffer =  ByteBuffer.allocate(8192); // 버퍼 생성
         this.inputBuffer.flip(); // 버퍼를 읽기모드로 전환
+
         this.inputStream = clientSocket.getInputStream();
         this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         this.outputStream = clientSocket.getOutputStream();
     }
 
-    /**
-     * inputStream을 읽어 inputBuffer에 적재한다.
-     * @return inputBuffer에 적재한 바이트 수
-     */
+    // startLine, header 읽어서 request 세팅
+    public Request readCommon() throws IOException {
+        Request request = new Request();
+        HeaderParser headerParser = new HeaderParser();
+        StartlineParser startlineParser = new StartlineParser();
+        String headers = headerParser.read(this);
+        String startline = startlineParser.read(this);
+        headerParser.parse(headers, request);
+        startlineParser.parse(startline, request);
+        request.setIsParsed(true);
+        return request;
+    }
+
+    // 바이트 읽기
     public int loadByteBuffer() {
         byte[] tempByteArr = new byte[this.inputBuffer.capacity()];
         int read;
@@ -56,7 +67,29 @@ public class DataProcessor {
         return read;
     }
 
+    // LINE 읽기
     public String readLine() throws IOException {
         return this.bufferedReader.readLine();
+    }
+
+    public void close() {
+        closeInputStream();
+        closeOutputStream();
+    }
+
+    public void closeInputStream() {
+        try {
+            this.bufferedReader.close();
+        } catch (IOException e) {
+            throw new RuntimeException("cannot close input stream");
+        }
+    }
+
+    public void closeOutputStream() {
+        try {
+            this.outputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException("cannot close input stream");
+        }
     }
 }

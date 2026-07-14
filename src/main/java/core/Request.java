@@ -28,7 +28,6 @@ public class Request {
     private List<QueryString> queryStrings = new ArrayList<>();
     private List<Header> headers = new ArrayList<>();
     private boolean isParsed;
-    public Socket clientSocket;
 
     public void setMethod(Method method) {
         this.method = method;

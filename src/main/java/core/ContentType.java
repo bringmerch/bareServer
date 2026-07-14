@@ -33,12 +33,4 @@ public enum ContentType {
         this.resourceDir = resourceDir;
         this.extension = extension;
     }
-
-    public String getValue() {
-        return this.value;
-    }
-
-    public String getExtension() {
-        return this.extension;
-    }
 }

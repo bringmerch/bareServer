@@ -19,116 +19,54 @@ import java.nio.charset.StandardCharsets;
  * --------- ------------------- -------------------------------
  * 2026-07-13        munke                   최초개정
  */
-public class HTMLWorker implements Worker {
-    Request request;
-    Response response;
-    DataProcessor dataProcessor;
+public class HTMLWorker implements Worker<String> {
+    final ContentType contentType = ContentType.TEXT_HTML;
 
     @Override
-    public void execute() {
-        try {
-            this.request = new Request();
-            this.response = new Response<String>();
-            this.read();
-            this.doProcess();
-            this.write();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void execute(DataProcessor dataProcessor) throws IOException {
+        Request request = dataProcessor.readCommon();
+        Response response = this.doProcess(request);
+        Writer.writeString(response, dataProcessor);
     }
 
     @Override
-    public void read() throws IOException {
-        this.dataProcessor = new DataProcessor(this.request.clientSocket);
-        HeaderParser headerParser = new HeaderParser();
-        StartlineParser startlineParser = new StartlineParser();
-        String headers = headerParser.read(dataProcessor);
-        String startline = startlineParser.read(dataProcessor);
-        headerParser.parse(headers, this.request);
-        startlineParser.parse(startline, this.request);
-        this.request.setIsParsed(true); // request 파싱 완료
+    public Response doProcess(Request request) throws IOException {
+        Response response = new Response(this.doGet(request));
+        response.setStatusCode(200);
+        response.addHeader(new Header("Content-Type", contentType.value));
+        return response;
     }
 
     @Override
-    public void doProcess() throws IOException {
-        this.doGet();
-    }
-
-    @Override
-    public void doGet() throws IOException {
-        ContentType contentType = ContentType.TEXT_HTML;
-        this.response.addHeader(new Header("Content-Type", contentType.getValue()));
-
+    public String doGet(Request request) throws IOException {
         FileManager fileManager = new FileManager();
-        File file = fileManager.loadFile(contentType.resourceDir + this.request.getPath() + contentType.getExtension());
+        File file = fileManager.loadFile(contentType.resourceDir + request.getPath() + contentType.extension);
         FileInputStream fileInputStream = new FileInputStream(file);
         InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
         String line;
-        String content = "";
+        String responseBody = "";
 
-        while ((line = bufferedReader.readLine()) != null) {
-            content += line;
+        try {
+            while ((line = bufferedReader.readLine()) != null) {
+                responseBody += line;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
 
-        this.response.addHeader(new Header("Content-Length", String.valueOf(content.getBytes(StandardCharsets.UTF_8))));
-        this.response.setBody(content);
-        this.response.setStatusCode(200);
-
         bufferedReader.close();
-        this.dataProcessor.inputStream.close();
+        return responseBody;
     }
 
     @Override
-    public void doPost() throws IOException {
-
-    }
+    public void doPost() throws IOException {}
 
     @Override
-    public void doPut() throws IOException {
-
-    }
+    public void doPut() throws IOException {}
 
     @Override
-    public void doDelete() throws IOException {
-
-    }
-
-    @Override
-    public void write() throws IOException {
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.dataProcessor.outputStream, StandardCharsets.UTF_8);
-        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("""
-                HTTP/1.1 %d\r
-                Content-Type: %s\r
-                Content-Length: %d\r
-                \r
-                """
-            .formatted(this.response.getStatusCode(), this.response.getHeader("Content-Type"), this.response.getHeader("Content-Length")));
-
-        bufferedWriter.write(sb.toString());
-        bufferedWriter.write((String)this.response.getBody());
-        bufferedWriter.flush();
-
-        bufferedWriter.close();
-    }
-
-    @Override
-    public Request getRequest() {
-        return this.request;
-    }
-
-    @Override
-    public Response getResponse() {
-        return this.response;
-    }
-
-    @Override
-    public DataProcessor getDataProcessor() {
-        return this.dataProcessor;
-    }
+    public void doDelete() throws IOException {}
 }

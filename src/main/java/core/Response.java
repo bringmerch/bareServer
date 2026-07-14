@@ -25,6 +25,10 @@ public class Response<T> {
     private List<Header> headers = new ArrayList<>();
     private T body;
 
+    Response(T body) {
+        this.body = body;
+    }
+
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
@@ -44,10 +48,6 @@ public class Response<T> {
             }
         }
         return null;
-    }
-
-    public void setBody(T body) {
-        this.body = body;
     }
 
     public T getBody() {
