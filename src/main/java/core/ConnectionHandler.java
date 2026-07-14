@@ -25,14 +25,13 @@ public class ConnectionHandler implements Consumer<Socket> {
     @Override
     public void accept(Socket clientSocket) {
         System.out.println("run....");
-        Request request = new Request();
 
         try {
-            Class workerClass = Container.get(request.getPath());
-            java.lang.reflect.Method method = workerClass.getMethod(Constants.EXECUTE.getValue());
-            Object workerInstance = workerClass.getDeclaredConstructor().newInstance();
-            method.invoke(workerInstance); // worker.execute()
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+            DataProcessor dataProcessor = new DataProcessor(clientSocket);
+            Request request = dataProcessor.readCommon();
+            Worker worker = this.getWorker(request);
+            worker.execute(request, dataProcessor);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException | IOException e) {
             e.printStackTrace();
         }
 
@@ -41,5 +40,16 @@ public class ConnectionHandler implements Consumer<Socket> {
         } catch (IOException e) {
             throw new RuntimeException("cannot close clientSocket.");
         }
+    }
+
+    private Worker getWorker(Request request) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class workerClass = Container.get(request.getPath());
+        if (workerClass == null) {
+            System.out.println("worker not found....");
+            request.setResponseStatusCode(404);
+            return new HTMLWorker();
+        }
+        Object workerInstance = workerClass.getDeclaredConstructor().newInstance();
+        return (Worker)workerInstance;
     }
 }

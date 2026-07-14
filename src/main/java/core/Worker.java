@@ -1,6 +1,7 @@
 package core;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -19,10 +20,37 @@ import java.io.IOException;
  * 2026-07-13        munke                   최초개정
  */
 public interface Worker<T> {
-    void execute(DataProcessor dataProcessor) throws IOException;
+    void execute(Request request, DataProcessor dataProcessor) throws IOException;
+
     Response doProcess(Request request) throws IOException;
     T doGet(Request request) throws IOException;
+
     void doPost() throws IOException;
+
     void doPut() throws IOException;
+
     void doDelete() throws IOException;
+
+    default String doError(Request request) throws IOException {
+        FileManager fileManager = new FileManager();
+        File file = fileManager.loadFile(ContentType.TEXT_HTML.resourceDir + "/error/" + request.getResponseStatusCode() + ContentType.TEXT_HTML.extension);
+        FileInputStream fileInputStream = new FileInputStream(file);
+        InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+        String line;
+        String responseBody = "";
+
+        try {
+            while ((line = bufferedReader.readLine()) != null) {
+                responseBody += line;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        bufferedReader.close();
+        return responseBody;
+    }
 }

@@ -28,6 +28,7 @@ public class Request {
     private List<QueryString> queryStrings = new ArrayList<>();
     private List<Header> headers = new ArrayList<>();
     private boolean isParsed;
+    private int responseStatusCode;
 
     public void setMethod(Method method) {
         this.method = method;
@@ -43,6 +44,14 @@ public class Request {
 
     public String[] getStartline() {
         return this.startline;
+    }
+
+    public void setResponseStatusCode(int responseStatusCode) {
+        this.responseStatusCode = responseStatusCode;
+    }
+
+    public int getResponseStatusCode() {
+        return this.responseStatusCode;
     }
 
     public void setStartline(String[] startline) {

@@ -40,7 +40,7 @@ public class Writer {
             .formatted(
                 response.getStatusCode(),
                 response.getHeader("Content-Type").fieldValue(),
-                String.valueOf(((String)response.getBody()).getBytes(StandardCharsets.UTF_8))
+                ((String)response.getBody()).getBytes(StandardCharsets.UTF_8).length
             )
         );
 

@@ -23,18 +23,24 @@ public class HTMLWorker implements Worker<String> {
     final ContentType contentType = ContentType.TEXT_HTML;
 
     @Override
-    public void execute(DataProcessor dataProcessor) throws IOException {
-        Request request = dataProcessor.readCommon();
+    public void execute(Request request, DataProcessor dataProcessor) throws IOException {
         Response response = this.doProcess(request);
         Writer.writeString(response, dataProcessor);
     }
 
     @Override
     public Response doProcess(Request request) throws IOException {
-        Response response = new Response(this.doGet(request));
-        response.setStatusCode(200);
-        response.addHeader(new Header("Content-Type", contentType.value));
-        return response;
+        if (request.getResponseStatusCode() > 0) { // 에러 코드 세팅해서 들어오는 애는 에러페이지 리턴
+            Response response = new Response(this.doError(request));
+            response.setStatusCode(request.getResponseStatusCode());
+            response.addHeader(new Header("Content-Type", contentType.value));
+            return response;
+        } else {
+            Response response = new Response(this.doGet(request));
+            response.setStatusCode(200);
+            response.addHeader(new Header("Content-Type", contentType.value));
+            return response;
+        }
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.io.IOException;
  */
 public class HeaderParser {
     public void parse(String data, Request request) {
-        String[] headers = data.split("\n");
+        String[] headers = data.split(Constants.CRLF.getValue());
 
         System.out.println("data = " + data);
 
@@ -48,6 +48,7 @@ public class HeaderParser {
                 break;
 
             lines.append(readLine);
+            lines.append(Constants.CRLF.getValue());
         }
 
         if (lines.isEmpty()) {

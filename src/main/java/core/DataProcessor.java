@@ -40,8 +40,8 @@ public class DataProcessor {
         Request request = new Request();
         HeaderParser headerParser = new HeaderParser();
         StartlineParser startlineParser = new StartlineParser();
-        String headers = headerParser.read(this);
         String startline = startlineParser.read(this);
+        String headers = headerParser.read(this);
         headerParser.parse(headers, request);
         startlineParser.parse(startline, request);
         request.setIsParsed(true);
