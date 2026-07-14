@@ -1,5 +1,6 @@
 package core;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -22,6 +23,16 @@ import java.util.List;
  * 2026-07-13        munke                   최초개정
  */
 public class StartlineParser {
+    public String read(DataProcessor dataProcessor) throws IOException {
+        String readLine = dataProcessor.readLine();
+
+        if (readLine == null || readLine.isBlank()) {
+            throw new IOException("Empty http request startLine.");
+        }
+
+        return readLine;
+    }
+
     public void parse(String data, Request request) {
         String[] parts = data.split(" ");
 
@@ -74,49 +85,5 @@ public class StartlineParser {
                 request.addQueryString(new QueryString(keyValue[0], keyValue[1]));
             }
         }
-    }
-
-    public String read(DataProcessor dataProcessor) {
-        byte b;
-        StringBuilder startLine = new StringBuilder();
-        boolean fin = false; // start line 읽기 종료 여부
-        int read = 0;
-        int remaining;
-
-        while (!fin) {
-            if (read == 0) {
-                read = dataProcessor.loadByteBuffer();
-
-                if (read <= 0)
-                    break;
-
-                dataProcessor.inputBuffer.flip(); // 읽기모드 진입
-            }
-
-            remaining = read;
-            int processed = 0;
-
-            for (int i = 0; i < remaining; i++) {
-                b = dataProcessor.inputBuffer.get();
-                processed++;
-
-                if (b == '\r') // \r 뒤에 어차피 \n 오니까 먹는다.
-                    continue;
-
-                if (b == '\n') {
-                    fin = true;
-                    break;
-                }
-
-                startLine.append((char)b);
-            }
-
-            read = remaining == processed ? 0 : remaining - processed;
-        }
-
-        if (startLine.isEmpty())
-            throw new RuntimeException("invalid http message start line.");
-
-        return startLine.toString();
     }
 }

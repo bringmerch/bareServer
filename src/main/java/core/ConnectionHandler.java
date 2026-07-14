@@ -31,7 +31,7 @@ public class ConnectionHandler implements Consumer<Socket> {
             Class workerClass = Container.get(request.getPath());
             java.lang.reflect.Method method = workerClass.getMethod(Constants.EXECUTE.getValue());
             Object workerInstance = workerClass.getDeclaredConstructor().newInstance();
-            method.invoke(workerInstance);
+            method.invoke(workerInstance); // worker.execute()
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
         }

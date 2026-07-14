@@ -30,7 +30,7 @@ public class HTMLWorker implements Worker {
             this.request = new Request();
             this.response = new Response<String>();
             this.read();
-            this.doGet();
+            this.doProcess();
             this.write();
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,6 +47,11 @@ public class HTMLWorker implements Worker {
         headerParser.parse(headers, this.request);
         startlineParser.parse(startline, this.request);
         this.request.setIsParsed(true); // request 파싱 완료
+    }
+
+    @Override
+    public void doProcess() throws IOException {
+        this.doGet();
     }
 
     @Override
@@ -73,6 +78,21 @@ public class HTMLWorker implements Worker {
 
         bufferedReader.close();
         this.dataProcessor.inputStream.close();
+    }
+
+    @Override
+    public void doPost() throws IOException {
+
+    }
+
+    @Override
+    public void doPut() throws IOException {
+
+    }
+
+    @Override
+    public void doDelete() throws IOException {
+
     }
 
     @Override

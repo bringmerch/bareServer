@@ -20,9 +20,16 @@ import java.io.IOException;
  */
 public interface Worker {
     void execute();
+
     void read() throws IOException;
-    void doGet() throws IOException;
     void write() throws IOException;
+
+    void doProcess() throws IOException;
+    void doGet() throws IOException;
+    void doPost() throws IOException;
+    void doPut() throws IOException;
+    void doDelete() throws IOException;
+
     Request getRequest();
     Response getResponse();
     DataProcessor getDataProcessor();
