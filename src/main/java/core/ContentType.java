@@ -1,7 +1,5 @@
 package core;
 
-import javax.swing.text.AbstractDocument;
-
 /**
  *
  * Package Name: core
@@ -21,12 +19,12 @@ import javax.swing.text.AbstractDocument;
 public enum ContentType {
     TEXT_HTML("text/html", "/static/html/", ".html"),
     TEXT_PLAIN("text/plain", "/static/text/", ".txt"),
-    IMAGE_JPEG("image/jpeg", "/static/jpg/", ".jpeg"),
+    IMAGE_JPEG("image/jpeg", "/static/images/jpeg", ".jpeg"),
     APPLICATION_JSON("application/json", "/static/json/", ".json");
 
-    String value;
-    String resourceDir;
-    String extension;
+    final String value;
+    final String resourceDir;
+    final String extension;
 
     ContentType(String value, String resourceDir, String extension) {
         this.value = value;

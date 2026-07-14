@@ -1,9 +1,7 @@
 package core;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  *
@@ -30,20 +28,16 @@ public class Request {
     private boolean isParsed;
     private int responseStatusCode;
 
+    public Method getMethod() {
+        return this.method;
+    }
+
     public void setMethod(Method method) {
         this.method = method;
     }
 
     public void setIsParsed(boolean isParsed) {
         this.isParsed = isParsed;
-    }
-
-    public boolean getIsParsed() {
-        return isParsed;
-    }
-
-    public String[] getStartline() {
-        return this.startline;
     }
 
     public void setResponseStatusCode(int responseStatusCode) {
@@ -81,9 +75,5 @@ public class Request {
             }
         }
         return headers;
-    }
-
-    public void recycle() {
-
     }
 }

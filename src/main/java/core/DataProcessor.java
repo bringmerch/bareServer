@@ -48,25 +48,6 @@ public class DataProcessor {
         return request;
     }
 
-    // 바이트 읽기
-    public int loadByteBuffer() {
-        byte[] tempByteArr = new byte[this.inputBuffer.capacity()];
-        int read;
-
-        this.inputBuffer.clear();
-
-        try {
-            read = this.inputStream.read(tempByteArr);
-            if (read > 0)
-                this.inputBuffer.put(tempByteArr, 0, read);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        return read;
-    }
-
     // LINE 읽기
     public String readLine() throws IOException {
         return this.bufferedReader.readLine();
@@ -81,7 +62,7 @@ public class DataProcessor {
         try {
             this.bufferedReader.close();
         } catch (IOException e) {
-            throw new RuntimeException("cannot close input stream");
+            e.printStackTrace();
         }
     }
 
@@ -89,7 +70,7 @@ public class DataProcessor {
         try {
             this.outputStream.close();
         } catch (IOException e) {
-            throw new RuntimeException("cannot close input stream");
+            e.printStackTrace();
         }
     }
 }

@@ -1,5 +1,6 @@
 package core;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,13 +22,25 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Container {
     static final ConcurrentHashMap<String, Class<? extends Worker>> pathWorkerMap;
 
+    static final ConcurrentHashMap<String, List<Method>> pathMethodsMap;
+
     static {
         pathWorkerMap = new ConcurrentHashMap<>();
         pathWorkerMap.put("/index", HTMLWorker.class);
         pathWorkerMap.put("/hello", HTMLWorker.class);
+        pathWorkerMap.put("/panda", ImageWorker.class);
+
+        pathMethodsMap = new ConcurrentHashMap<>();
+        pathMethodsMap.put("/index", List.of(Method.GET));
+        pathMethodsMap.put("/hello", List.of(Method.GET));
+        pathMethodsMap.put("/panda", List.of(Method.GET));
     }
 
-    public static Class get(String path) {
+    public static Class getWorker(String path) {
         return pathWorkerMap.get(path);
+    }
+
+    public static List getMethods(String path) {
+        return pathMethodsMap.get(path);
     }
 }

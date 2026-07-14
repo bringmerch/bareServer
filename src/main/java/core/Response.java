@@ -1,6 +1,5 @@
 package core;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +28,10 @@ public class Response<T> {
         this.body = body;
     }
 
+    Response(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
@@ -53,4 +56,6 @@ public class Response<T> {
     public T getBody() {
         return this.body;
     }
+
+    public void setBody(T body) {this.body = body;}
 }

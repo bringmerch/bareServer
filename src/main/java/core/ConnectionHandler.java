@@ -3,6 +3,7 @@ package core;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -31,6 +32,7 @@ public class ConnectionHandler implements Consumer<Socket> {
             Request request = dataProcessor.readCommon();
             Worker worker = this.getWorker(request);
             worker.execute(request, dataProcessor);
+            dataProcessor.close();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException | IOException e) {
             e.printStackTrace();
         }
@@ -43,12 +45,23 @@ public class ConnectionHandler implements Consumer<Socket> {
     }
 
     private Worker getWorker(Request request) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class workerClass = Container.get(request.getPath());
+        String path = request.getPath();
+
+        Class workerClass = Container.getWorker(path);
         if (workerClass == null) {
-            System.out.println("worker not found....");
+            System.out.println("worker not found....illegal path.");
             request.setResponseStatusCode(404);
             return new HTMLWorker();
         }
+
+        List<Method> allowMethods = Container.getMethods(path);
+        if (allowMethods == null || !allowMethods.contains(request.getMethod())) {
+            System.out.println("method now allowed");
+            request.setResponseStatusCode(405);
+            return new HTMLWorker();
+        }
+
+
         Object workerInstance = workerClass.getDeclaredConstructor().newInstance();
         return (Worker)workerInstance;
     }

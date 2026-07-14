@@ -1,39 +1,40 @@
 package core;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  *
  * Package Name: core
- * File Name: HTMLWorker
+ * File Name: ImageWorker
  * Description:
  * author: munke
  *
  * @version 1.0
  * @see core
- * @since 2026-07-13
+ * @since 2026-07-14
  * <p>
  * Modification Information
  * 수정일          수정자                    수정내용
  * --------- ------------------- -------------------------------
- * 2026-07-13        munke                   최초개정
+ * 2026-07-14        munke                   최초개정
  */
-public class HTMLWorker implements Worker<String> {
-    final ContentType contentType = ContentType.TEXT_HTML;
+public class ImageWorker implements Worker<ByteArrayWrapper> {
+    final ContentType contentType = ContentType.IMAGE_JPEG;
 
     @Override
     public void execute(Request request, DataProcessor dataProcessor) throws IOException {
         Response response = this.doProcess(request);
-        Writer.writeString(response, dataProcessor);
+        Writer.writeByte(response, dataProcessor);
     }
 
     @Override
     public Response doProcess(Request request) throws IOException {
-        if (request.getResponseStatusCode() > 0) { // 에러 코드 세팅해서 들어오는 애는 에러페이지 리턴
+        if (request.getResponseStatusCode() > 0) {
             return this.getErrorResponse(request);
         } else {
-            Response response = new Response(this.doGet(request));
+            Response<ByteArrayWrapper> response = new Response(this.doGet(request));
             response.setStatusCode(200);
             response.addHeader(new Header("Content-Type", contentType.value));
             return response;
@@ -41,27 +42,13 @@ public class HTMLWorker implements Worker<String> {
     }
 
     @Override
-    public String doGet(Request request) throws IOException {
+    public ByteArrayWrapper doGet(Request request) throws IOException {
         FileManager fileManager = new FileManager();
         File file = fileManager.loadFile(contentType.resourceDir + request.getPath() + contentType.extension);
         FileInputStream fileInputStream = new FileInputStream(file);
-        InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-        String line;
-        String responseBody = "";
-
-        try {
-            while ((line = bufferedReader.readLine()) != null) {
-                responseBody += line;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        bufferedReader.close();
-        return responseBody;
+        ByteArrayWrapper body = new ByteArrayWrapper(fileInputStream.readAllBytes());
+        fileInputStream.close();
+        return body;
     }
 
     @Override

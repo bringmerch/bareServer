@@ -3,6 +3,7 @@ package core;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
@@ -23,32 +24,50 @@ import java.nio.charset.StandardCharsets;
  * 2026-07-14        munke                   최초개정
  */
 public class Writer {
-    public static void writeByte(byte[] responseBody, DataProcessor dataProcessor) {}
+    public static void writeByte(Response<ByteArrayWrapper> response, DataProcessor dataProcessor) throws IOException {
+        ByteArrayWrapper bodyWrapper = response.getBody();
+        byte[] body = bodyWrapper.getBytes();
 
-    public static void writeString(Response response, DataProcessor dataProcessor) throws IOException {
+        String commonPart = Writer.getCommonPart(
+            response.getStatusCode(),
+            response.getHeader("Content-Type").fieldValue(),
+            body.length
+        );
+
+        OutputStream outputStream = dataProcessor.outputStream;
+
+        outputStream.write(commonPart.getBytes());
+        outputStream.write(body);
+        outputStream.flush();
+    }
+
+    public static void writeString(Response<String> response, DataProcessor dataProcessor) throws IOException {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(dataProcessor.outputStream, StandardCharsets.UTF_8);
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
 
-        StringBuilder sb = new StringBuilder();
+        bufferedWriter.write(
+            Writer.getCommonPart(
+                response.getStatusCode(),
+                response.getHeader("Content-Type").fieldValue(),
+                (response.getBody()).getBytes(StandardCharsets.UTF_8).length
+            )
+        );
+        bufferedWriter.write((String)response.getBody());
+        bufferedWriter.flush();
+        bufferedWriter.close();
+    }
 
-        sb.append("""
+    public static String getCommonPart(int statusCode, String contentType, int contentLength) {
+        return """
                 HTTP/1.1 %d\r
                 Content-Type: %s\r
                 Content-Length: %d\r
                 \r
                 """
             .formatted(
-                response.getStatusCode(),
-                response.getHeader("Content-Type").fieldValue(),
-                ((String)response.getBody()).getBytes(StandardCharsets.UTF_8).length
-            )
-        );
-
-        bufferedWriter.write(sb.toString());
-        bufferedWriter.write((String)response.getBody());
-        bufferedWriter.flush();
-        bufferedWriter.close();
-
-        dataProcessor.close();
+                statusCode,
+                contentType,
+                contentLength
+            );
     }
 }

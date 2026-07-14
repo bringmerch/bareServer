@@ -31,7 +31,10 @@ public interface Worker<T> {
 
     void doDelete() throws IOException;
 
-    default String doError(Request request) throws IOException {
+    default Response getErrorResponse(Request request) throws FileNotFoundException {
+        Response<String> response = new Response(request.getResponseStatusCode());
+        response.addHeader(new Header("Content-Type", ContentType.TEXT_HTML.value));
+
         FileManager fileManager = new FileManager();
         File file = fileManager.loadFile(ContentType.TEXT_HTML.resourceDir + "/error/" + request.getResponseStatusCode() + ContentType.TEXT_HTML.extension);
         FileInputStream fileInputStream = new FileInputStream(file);
@@ -50,7 +53,11 @@ public interface Worker<T> {
             return null;
         }
 
-        bufferedReader.close();
-        return responseBody;
+        response.setBody(responseBody);
+
+        return response;
     }
+
+    // impl한테 contentType 멤버변수 요구
+    ContentType getContentType();
 }
