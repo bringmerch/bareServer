@@ -24,17 +24,6 @@ public class Container {
 
     static final ConcurrentHashMap<String, List<Method>> pathMethodsMap;
 
-    // 1. 자원 close
-    // 2. parser는 String 받아서 파싱만 !!
-    // 3. worker 책임 분리 - worker는 method를 알 필요가 없다. 요청사항 받아서 execute하면 땡
-    // 4. throw IOException을 해놨으면 위로 던질 것 !!
-    // 5. inputStream 멤버변수 삭제
-    // 7. 파라미터 유효성 검사 !! 공통
-    // 8. 응답 시 buffer 사용
-    // 9. finally 써도 됨
-    // 10. catch에서 return null 하지말고 웬만하면 나를 호출한 원점까지 Exception을 던져라...
-    // 11. buffered return은 보통 4kb씩
-
     static {
         pathWorkerMap = new ConcurrentHashMap<>();
         pathWorkerMap.put("/index", HTMLWorker.class);

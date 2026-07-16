@@ -46,18 +46,9 @@ public class ImageWorker implements Worker<ByteArrayWrapper> {
         FileManager fileManager = new FileManager();
         File file = fileManager.loadFile(contentType.resourceDir + request.getPath() + contentType.extension);
         FileInputStream fileInputStream = new FileInputStream(file);
-        ByteArrayWrapper body = new ByteArrayWrapper(fileInputStream.readAllBytes());//oom
+        ByteArrayWrapper body = new ByteArrayWrapper(fileInputStream.readAllBytes());
         fileInputStream.close();
         return body;
-        byte[] temp = new byte[] ;
-
-        while () {
-            // 8키로씩 읽는다....
-            temp.clear()
-            temp = fileStream.read(8192); // 8kb씩 ...
-            outStream.write(temp);
-        }
-
     }
 
     @Override

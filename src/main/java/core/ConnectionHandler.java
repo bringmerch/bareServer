@@ -31,12 +31,7 @@ public class ConnectionHandler implements Consumer<Socket> {
             DataProcessor dataProcessor = new DataProcessor(clientSocket);
             Request request = dataProcessor.readCommon();
             Worker worker = this.getWorker(request);
-            try {
-                worker.execute(request, dataProcessor); // IOException 캐치 왜 안 함 ? ?
-             } catch (IOException e ) {
-
-            }
-
+            worker.execute(request, dataProcessor);
             dataProcessor.close();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException | IOException e) {
             e.printStackTrace();

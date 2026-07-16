@@ -19,8 +19,7 @@ import java.io.IOException;
  * 2026-07-13        munke                   최초개정
  */
 public class HeaderParser {
-//    public void parse(String data, Request request) {
-    public void parse(String data) {
+    public void parse(String data, Request request) {
         String[] headers = data.split(Constants.CRLF.getValue());
 
         System.out.println("data = " + data);
@@ -38,5 +37,25 @@ public class HeaderParser {
         }
     }
 
+    public String read(DataProcessor dataProcessor) throws IOException {
+        StringBuilder lines = new StringBuilder();
+        String readLine;
 
+        while (true) {
+            readLine = dataProcessor.readLine();
+
+            if (readLine == null || readLine.isBlank())
+                break;
+
+            lines.append(readLine);
+            lines.append(Constants.CRLF.getValue());
+        }
+
+        if (lines.isEmpty()) {
+            throw new RuntimeException("invalid header lines.");
+        }
+
+        System.out.println("Headers : " + lines);
+        return lines.toString();
+    }
 }
