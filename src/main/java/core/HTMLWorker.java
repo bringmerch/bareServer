@@ -23,9 +23,14 @@ public class HTMLWorker implements Worker<String> {
     final ContentType contentType = ContentType.TEXT_HTML;
 
     @Override
-    public void execute(Request request, DataProcessor dataProcessor) throws IOException {
+    public void execute(Request request, DataProcessor dataProcessor)  {
         Response response = this.doProcess(request);
         Writer.writeString(response, dataProcessor);
+        try {
+
+        } catch IOEx {
+
+        }
     }
 
     @Override
@@ -33,11 +38,13 @@ public class HTMLWorker implements Worker<String> {
         if (request.getResponseStatusCode() > 0) { // 에러 코드 세팅해서 들어오는 애는 에러페이지 리턴
             return this.getErrorResponse(request);
         } else {
-            Response response = new Response(this.doGet(request));
+            Response response = new Response(this.doGet(request)); // 통으로 request 계속 넘기지 말것!!!
             response.setStatusCode(200);
             response.addHeader(new Header("Content-Type", contentType.value));
             return response;
         }
+
+
     }
 
     @Override
@@ -58,9 +65,11 @@ public class HTMLWorker implements Worker<String> {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            bufferedReader.close();
+
         }
 
-        bufferedReader.close();
         return responseBody;
     }
 

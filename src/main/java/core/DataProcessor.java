@@ -33,19 +33,42 @@ public class DataProcessor {
         this.inputStream = clientSocket.getInputStream();
         this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         this.outputStream = clientSocket.getOutputStream();
+        // 얘네 다 readCommon에서 해도 상관없음......
     }
 
     // startLine, header 읽어서 request 세팅
-    public Request readCommon() throws IOException {
+    public Request readCommon(Socket clientSocket) throws IOException {
         Request request = new Request();
         HeaderParser headerParser = new HeaderParser();
         StartlineParser startlineParser = new StartlineParser();
         String startline = startlineParser.read(this);
         String headers = headerParser.read(this);
-        headerParser.parse(headers, request);
+        headerParser.parse(headers, request); // parser는 String만 던져서 파싱만 맡겨라 !!
         startlineParser.parse(startline, request);
         request.setIsParsed(true);
         return request;
+    }
+
+    public String read(DataProcessor dataProcessor) throws IOException {
+        StringBuilder lines = new StringBuilder();
+        String readLine;
+
+        while (true) {
+            readLine = dataProcessor.readLine();
+
+            if (readLine == null || readLine.isBlank())
+                break;
+
+            lines.append(readLine);
+            lines.append(Constants.CRLF.getValue());
+        }
+
+        if (lines.isEmpty()) {
+            throw new RuntimeException("invalid header lines.");
+        }
+
+        System.out.println("Headers : " + lines);
+        return lines.toString();
     }
 
     // LINE 읽기
