@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>파일 업로드</title>
+</head>
+<body>
+<form id="uploadForm">
+    <input type="file" id="fileInput" name="file" required>
+    <button type="submit">업로드</button>
+</form>
+
+<p id="resultMessage"></p>
+
+<script>
+    const form = document.getElementById('uploadForm');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // 페이지 새로고침 방지
+
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('파일을 선택해주세요.');
+            return;
+        }
+
+        // FormData 객체에 파일 추가
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            document.getElementById('resultMessage').textContent = '업로드 중...';
+
+            // fetch로 서버에 전송
+            const response = await fetch('http://localHost:8080/upload/file', { // 실제 서버 업로드 엔드포인트 입력
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                document.getElementById('resultMessage').textContent = '업로드 성공!';
+            } else {
+                document.getElementById('resultMessage').textContent = '업로드 실패. 서버 상태를 확인하세요.';
+            }
+        } catch (error) {
+            console.error('에러 발생:', error);
+            document.getElementById('resultMessage').textContent = '네트워크 에러가 발생했습니다.';
+        }
+    });
+</script>
+</body>
+</html>
