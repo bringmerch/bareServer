@@ -17,18 +17,18 @@ package core;
  * 2026-07-06        munke                   최초개정
  */
 public enum ContentType {
-    TEXT_HTML("text/html", "/static/html/", ".html"),
-    TEXT_PLAIN("text/plain", "/static/text/", ".txt"),
-    IMAGE_JPEG("image/jpeg", "/static/images/jpeg", ".jpeg"),
-    APPLICATION_JSON("application/json", "/static/json/", ".json");
+    TEXT_HTML("text/html; charset=utf-8"),
+    TEXT_PLAIN("text/plain; charset=utf-8"),
+    IMAGE_JPEG("image/jpeg"),
+    APPLICATION_JSON("application/json; charset=utf-8");
 
-    final String value;
-    final String resourceDir;
-    final String extension;
+    private final String MIMEType;
 
-    ContentType(String value, String resourceDir, String extension) {
-        this.value = value;
-        this.resourceDir = resourceDir;
-        this.extension = extension;
+    ContentType(String MIMEType) {
+        this.MIMEType = MIMEType;
+    }
+
+    public String getMIMEType() {
+        return this.MIMEType;
     }
 }

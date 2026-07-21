@@ -1,42 +1,33 @@
 package core;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- *
- * Package Name: core
- * File Name: HeaderWorker
- * Description:
- * author: munke
- *
- * @version 1.0
- * @see core
- * @since 2026-07-13
- * <p>
- * Modification Information
- * 수정일          수정자                    수정내용
- * --------- ------------------- -------------------------------
- * 2026-07-13        munke                   최초개정
- */
 public class HeaderParser {
-    //    public void parse(String data, Request request) {
-    public void parse(String data) {
-        String[] headers = data.split(Constants.CRLF.getValue());
+    public HeaderMap parse(String data) throws IllegalArgumentException {
+        if (data == null || data.isBlank())
+            throw new IllegalArgumentException("header parsing failed: empty data.");
+        String[] rawHeader = data.split(Constants.CRLF.getValue());
+        HeaderMap header = new HeaderMap();
+        int hostHeaderCount = 0;
 
-        System.out.println("data = " + data);
-
-        for (String h : headers) {
-            String[] pair = h.split(":", 2);
-
-            if (pair.length != 2)
-                throw new RuntimeException("invalid Header. parsing failed.");
-
-            String fieldName = pair[0].trim();
-            String fieldValue = pair[1].trim();
-
-            request.addHeader(new Header(fieldName, fieldValue));
+        for (String line : rawHeader) {
+            String[] keyValue = line.split(":", 2);
+            if (keyValue.length != 2)
+                throw new IllegalArgumentException("header parsing failed: Invalid rawHeader = " + rawHeader);
+            if (keyValue[0].equalsIgnoreCase("host"))
+                hostHeaderCount++;
+            if (keyValue[0].isBlank() || keyValue[1].isBlank())
+                throw new IllegalArgumentException("header parsing failed: empty key or value not allowed. key: " + keyValue[0] + " value: " + keyValue[1]);
+            header.put(keyValue[0].trim(), keyValue[1].trim());
         }
+
+        if (headers.isEmpty())
+            throw new IllegalArgumentException("header parsing failed: illegal data.");
+
+        if (hostHeaderCount == 0 || hostHeaderCount > 1)
+            throw new IllegalArgumentException("header parsing failed: wrong host header. host header counted: " + hostHeaderCount);
+
+        return headers;
     }
-
-
 }

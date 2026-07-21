@@ -19,20 +19,31 @@ import java.util.List;
  * --------- ------------------- -------------------------------
  * 2026-07-01        munke                   최초개정
  */
-public class Response<T> {
+public class Response {
     private int statusCode;
-    private List<Header> headers = new ArrayList<>();
-    private T body;
+    private HeaderMap header = new HeaderMap();
+    private ResponseBody body;
 
-    Response(T body) {
+    Response(ResponseBody body) {
+        if (body == null)
+            throw new IllegalArgumentException("body must not be null.");
         this.body = body;
     }
 
     Response(int statusCode) {
+        validateStatusCode(statusCode);
+        this.statusCode = statusCode;
+    }
+
+    Response(int statusCode, ResponseBody body) {
+        if (body == null)
+            throw new IllegalArgumentException("body must not be null.");
+        this.body = body;
         this.statusCode = statusCode;
     }
 
     public void setStatusCode(int statusCode) {
+        validateStatusCode(statusCode);
         this.statusCode = statusCode;
     }
 
@@ -40,22 +51,36 @@ public class Response<T> {
         return this.statusCode;
     }
 
-    public void addHeader(Header header) {
-        this.headers.add(header);
+    public void setHeader(HeaderMap header) {
+        this.header = header;
     }
 
-    public Header getHeader(String fieldName) {
-        for (Header header : this.headers) {
-            if (header.fieldName().equalsIgnoreCase(fieldName)) {
-                return header;
-            }
-        }
-        return null;
+    public String getHeader(String fieldName) {
+        if (fieldName == null || fieldName.isBlank())
+            throw new IllegalArgumentException("fieldName must not be blank.");
+        if (!this.header.containsKey(fieldName))
+            throw new IllegalArgumentException("header doesn't exists.");
+        return this.header.get(fieldName);
     }
 
-    public T getBody() {
+    public HeaderMap getHeader() {
+        return this.header;
+    }
+
+    public ResponseBody getBody() {
         return this.body;
     }
 
-    public void setBody(T body) {this.body = body;}
+    public void setBody(ResponseBody body) {
+        if (body == null) {
+            throw new IllegalArgumentException("body must not be null.");
+        }
+        this.body = body;
+    }
+
+    private void validateStatusCode(int statusCode) {
+        if (statusCode < 100 || statusCode > 599) {
+            throw new IllegalArgumentException("statusCode must be between 100 and 599.");
+        }
+    }
 }

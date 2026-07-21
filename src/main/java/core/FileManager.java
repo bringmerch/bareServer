@@ -2,27 +2,15 @@ package core;
 
 import java.io.File;
 
-/**
- *
- * Package Name: core
- * File Name: FileManager
- * Description:
- * author: munke
- *
- * @version 1.0
- * @see core
- * @since 2026-07-08
- * <p>
- * Modification Information
- * 수정일          수정자                    수정내용
- * --------- ------------------- -------------------------------
- * 2026-07-08        munke                   최초개정
- */
+// todo
 public class FileManager {
-    static final String userDir = System.getProperty("user.dir");
-    static final String resourceRoot = "/src/main/resources";
+    private static final String USER_DIR = System.getProperty("user.dir");
+    private static final String RESOURCE_ROOT = "/src/main/resources";
 
-    public File loadFile(String filePath) {
-        return new File(userDir + resourceRoot + filePath);
+    public static File loadFile(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("filePath must not be blank.");
+        }
+        return new File(USER_DIR + RESOURCE_ROOT + filePath);
     }
 }

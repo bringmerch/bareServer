@@ -2,6 +2,7 @@ package core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -22,58 +23,42 @@ import java.util.List;
 public class Request {
     private Method method;
     private String path;
-    private String[] startline;
-    private List<QueryString> queryStrings = new ArrayList<>();
-    private List<Header> headers = new ArrayList<>();
-    private boolean isParsed;
-    private int responseStatusCode;
+    private Map<String, String> query;
+    private HeaderMap header;
 
     public Method getMethod() {
         return this.method;
     }
 
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
-    public void setIsParsed(boolean isParsed) {
-        this.isParsed = isParsed;
-    }
-
-    public void setResponseStatusCode(int responseStatusCode) {
-        this.responseStatusCode = responseStatusCode;
-    }
-
-    public int getResponseStatusCode() {
-        return this.responseStatusCode;
-    }
-
-    public void setStartline(String[] startline) {
-        this.startline = startline;
-    }
-
     public String getPath() {
         return this.path;
     }
+
+    public HeaderMap getHeader() {
+        return this.header;
+    }
+
+    public void setMethod(Method method) {
+        if (method == null)
+            throw new IllegalArgumentException("method must not be null.");
+        this.method = method;
+    }
+
     public void setPath(String path) {
+        if (path == null || path.isBlank())
+            throw new IllegalArgumentException("path must not be blank.");
         this.path = path;
     }
 
-    public void addHeader(Header header) {
-        this.headers.add(header);
+    public void setHeader(HeaderMap header) {
+        if (header == null || header.isEmpty())
+            throw new IllegalArgumentException("setHeaders failed: empty header.");
+        this.header = header;
     }
 
-    public void addQueryString(QueryString queryString) {
-        this.queryStrings.add(queryString);
-    }
-
-    public List<Header> getHeaders(String fieldName) {
-        List<Header> headers = new ArrayList<>();
-        for (Header header : this.headers) {
-            if (header.fieldName().equalsIgnoreCase(fieldName)) {
-                headers.add(header);
-            }
-        }
-        return headers;
+    public void setQuery(Map<String, String> query) {
+        if (query == null || query.isEmpty())
+            throw new IllegalArgumentException("setQuery failed: empty query.");
+        this.query = query;
     }
 }

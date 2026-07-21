@@ -20,8 +20,12 @@ import java.io.IOException;
 
 public class BareServer {
     // application start
-    public static void main(String[] args) throws IOException {
-        new Connector().start();
-        System.out.println("BareServer started...");
+    public static void main(String[] args) throws Exception {
+        try {
+            new Connector().start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

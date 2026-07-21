@@ -1,7 +1,5 @@
 package core;
 
-import java.util.Locale;
-
 /**
  *
  * Package Name: core
@@ -23,7 +21,7 @@ public enum Method {
     POST("POST"),
     PUT("PUT");
 
-    final String method;
+    private final String method;
 
     Method(String method) {
         this.method = method;
@@ -34,11 +32,16 @@ public enum Method {
     }
 
     public static Method from(String method) {
+        if (method == null || method.isBlank())
+            throw new IllegalArgumentException("Method find failed: empty method.");
+
         method = method.toUpperCase();
+
         for (Method value : Method.values()) {
             if (value.getMethod().equalsIgnoreCase(method))
                 return value;
         }
+
         throw new IllegalArgumentException("Unknown method: " + method);
     }
 }

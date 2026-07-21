@@ -1,73 +1,68 @@
 package core;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.function.Consumer;
 
-/**
- *
- * Package Name: core
- * File Name: ConnectionHandler
- * Description:
- * author: munke
- *
- * @version 1.0
- * @see core
- * @since 2026-07-01
- * <p>
- * Modification Information
- * 수정일          수정자                    수정내용
- * --------- ------------------- -------------------------------
- * 2026-07-01        munke                   최초개정
- */
-public class ConnectionHandler implements Consumer<Socket> {
-    @Override
-    public void accept(Socket clientSocket) {
-        System.out.println("run....");
-
+public class ConnectionHandler {
+    public void handle(final Socket clientSocket) {
+        BufferedReader bufferedReader = null;
+        OutputStream outputStream = null;
+        if (clientSocket == null)
+            throw new IllegalArgumentException("clientSocket must not be null.");
         try {
-            DataProcessor dataProcessor = new DataProcessor(clientSocket);
-            Request request = dataProcessor.readCommon();
-            Worker worker = this.getWorker(request);
-            try {
-                worker.execute(request, dataProcessor); // IOException 캐치 왜 안 함 ? ?
-            } catch (IOException e ) {
-
-            }
-
-            dataProcessor.close();
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException | IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            clientSocket.close();
+            bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+            outputStream = clientSocket.getOutputStream();
+            DataProcessor dataProcessor = new DataProcessor();
+            Request request = dataProcessor.readRequest(bufferedReader);
+            Worker worker = getWorker(request.getPath(), request.getMethod());
+            Response response = worker.execute(new WorkOrder());
+            writeResponse(outputStream, response);
+        } catch (HttpException e) {
+            writeErrorResponse(outputStream, e.getStatusCode(), e.getMessage());
+        } catch (IllegalArgumentException e) {
+            writeErrorResponse(outputStream, 400, e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException("cannot close clientSocket.");
+            e.printStackTrace();
+            writeErrorResponse(outputStream, 500, "Internal server error.");
+        } finally {
+            ResourceCloser.close(bufferedReader);
+            ResourceCloser.close(outputStream);
         }
     }
 
-    private Worker getWorker(Request request) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        String path = request.getPath();
+    private Worker getWorker(String path, Method method) throws HttpException {
+        if (path == null || method == null)
+            throw new IllegalArgumentException();
+        if (!Route.containsPath(path))
+            throw new HttpException(404, "Resource not found.");
+        Worker worker = Route.getWorker(path);
+        List<Method> allowedMethods = Route.getMethods(path);
+        if (!allowedMethods.contains(method))
+            throw new HttpException(405, "Method not allowed.");
+        return worker;
+    }
 
-        Class workerClass = Container.getWorker(path);
-        if (workerClass == null) {
-            System.out.println("worker not found....illegal path.");
-            request.setResponseStatusCode(404);
-            return new HTMLWorker();
+    private void writeResponse(OutputStream outputStream, Response response) {
+        try {
+            Writer.write(response, outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        List<Method> allowMethods = Container.getMethods(path);
-        if (allowMethods == null || !allowMethods.contains(request.getMethod())) {
-            System.out.println("method now allowed");
-            request.setResponseStatusCode(405);
-            return new HTMLWorker();
+    private void writeErrorResponse(OutputStream outputStream, int statusCode, String message) {
+        if (outputStream == null)
+            return;
+        try {
+            Response<String> response = Writer.errorResponse(statusCode, message);
+            Writer.write(response, outputStream);
+        } catch (IOException | IllegalArgumentException e) {
+            e.printStackTrace();
         }
-
-
-        Object workerInstance = workerClass.getDeclaredConstructor().newInstance();
-        return (Worker)workerInstance;
     }
 }

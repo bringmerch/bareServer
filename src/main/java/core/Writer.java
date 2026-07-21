@@ -1,73 +1,37 @@
 package core;
 
-
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
-/**
- *
- * Package Name: core
- * File Name: Writer
- * Description:
- * author: munke
- *
- * @version 1.0
- * @see core
- * @since 2026-07-14
- * <p>
- * Modification Information
- * 수정일          수정자                    수정내용
- * --------- ------------------- -------------------------------
- * 2026-07-14        munke                   최초개정
- */
 public class Writer {
-    public static void writeByte(Response<ByteArrayWrapper> response, DataProcessor dataProcessor) throws IOException {
-        ByteArrayWrapper bodyWrapper = response.getBody();
-        byte[] body = bodyWrapper.getBytes();
+    public static void write(Response response, OutputStream outputStream) throws IOException {
+        if (response == null)
+            throw new IllegalArgumentException("response must not be null.");
+        if (outputStream == null)
+            throw new IllegalArgumentException("outputStream must not be null.");
 
-        String commonPart = Writer.getCommonPart(
-            response.getStatusCode(),
-            response.getHeader("Content-Type").fieldValue(),
-            body.length
-        );
-
-        OutputStream outputStream = dataProcessor.outputStream;
-
-        outputStream.write(commonPart.getBytes());
-        outputStream.write(body);
+        ResponseBody body = response.getBody();
+        writeHeader(response, body.contentLength(), outputStream);
+        body.writeTo(outputStream);
         outputStream.flush();
     }
 
-    public static void writeString(Response<String> response, DataProcessor dataProcessor) throws IOException {
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(dataProcessor.outputStream, StandardCharsets.UTF_8);
-        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+    private static void writeHeader(Response response, long contentLength, OutputStream outputStream) throws IOException {
+        int statusCode = response.getStatusCode();
+        if (statusCode == 0)
+            throw new IllegalArgumentException("writeHeader fail: statusCode is empty");
+        if (contentLength == 0)
+            throw new IllegalArgumentException("writeHeader fail: contentLength is empty");
+        String contentType = response.getHeader().get("content-type");
+        if (contentType == null || contentType.isBlank())
+            throw new IllegalArgumentException("writeHeader fail: contentType is empty");
 
-        bufferedWriter.write(
-            Writer.getCommonPart(
-                response.getStatusCode(),
-                response.getHeader("Content-Type").fieldValue(),
-                (response.getBody()).getBytes(StandardCharsets.UTF_8).length
-            )
-        );
-        bufferedWriter.write((String)response.getBody());
-        bufferedWriter.flush();
-        bufferedWriter.close();
-    }
-
-    public static String getCommonPart(int statusCode, String contentType, int contentLength) {
-        return """
-                HTTP/1.1 %d\r
-                Content-Type: %s\r
-                Content-Length: %d\r
-                \r
-                """
-            .formatted(
-                statusCode,
-                contentType,
-                contentLength
-            );
+        String header =
+              "HTTP/1.1 " + response.getStatusCode() + "\r\n"
+            + "Content-Type: " + contentType + "\r\n"
+            + "Content-Length: " + contentLength + "\r\n"
+            + "\r\n";
+        outputStream.write(header.getBytes(StandardCharsets.UTF_8));
     }
 }
