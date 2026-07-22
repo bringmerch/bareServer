@@ -6,63 +6,36 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class ConnectionHandler {
-    public void handle(final Socket clientSocket) {
+    public void handle(final Socket clientSocket) throws BareException, IOException {
+        if (clientSocket == null)
+            throw new BareException(500, "handle failed: clientSocket is empty");
         BufferedReader bufferedReader = null;
         OutputStream outputStream = null;
-        if (clientSocket == null)
-            throw new IllegalArgumentException("clientSocket must not be null.");
+        Response response;
+
         try {
-            bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
-            outputStream = clientSocket.getOutputStream();
+            if ((bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8))) == null)
+                throw new IOException("handle failed: bufferedReader is empty");
+            if ((outputStream = clientSocket.getOutputStream()) == null)
+                throw new BareException(500, "handle failed: outputStream is empty");
             DataProcessor dataProcessor = new DataProcessor();
             Request request = dataProcessor.readRequest(bufferedReader);
-            Worker worker = getWorker(request.getPath(), request.getMethod());
-            Response response = worker.execute(new WorkOrder());
-            writeResponse(outputStream, response);
-        } catch (HttpException e) {
-            writeErrorResponse(outputStream, e.getStatusCode(), e.getMessage());
+            Container container = Container.findByPathAndMethod(request.getPath(), request.getMethod());
+            Worker worker = container.getWorkerInstance();
+            WorkOrder workOrder = new WorkOrder(container.getResourcePath(), container.getContentType());
+            response = worker.execute(workOrder);
+            Writer.write(response, outputStream);
+        } catch (BareException e) {
+            Writer.write(ErrorResponse.create(e.getStatusCode()), outputStream);
         } catch (IllegalArgumentException e) {
-            writeErrorResponse(outputStream, 400, e.getMessage());
+            Writer.write(ErrorResponse.create(400), outputStream);
         } catch (IOException e) {
-            e.printStackTrace();
-            writeErrorResponse(outputStream, 500, "Internal server error.");
+            Writer.write(ErrorResponse.create(500), outputStream);
         } finally {
             ResourceCloser.close(bufferedReader);
             ResourceCloser.close(outputStream);
-        }
-    }
-
-    private Worker getWorker(String path, Method method) throws HttpException {
-        if (path == null || method == null)
-            throw new IllegalArgumentException();
-        if (!Route.containsPath(path))
-            throw new HttpException(404, "Resource not found.");
-        Worker worker = Route.getWorker(path);
-        List<Method> allowedMethods = Route.getMethods(path);
-        if (!allowedMethods.contains(method))
-            throw new HttpException(405, "Method not allowed.");
-        return worker;
-    }
-
-    private void writeResponse(OutputStream outputStream, Response response) {
-        try {
-            Writer.write(response, outputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void writeErrorResponse(OutputStream outputStream, int statusCode, String message) {
-        if (outputStream == null)
-            return;
-        try {
-            Response<String> response = Writer.errorResponse(statusCode, message);
-            Writer.write(response, outputStream);
-        } catch (IOException | IllegalArgumentException e) {
-            e.printStackTrace();
         }
     }
 }

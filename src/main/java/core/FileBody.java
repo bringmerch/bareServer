@@ -22,7 +22,6 @@ import java.io.OutputStream;
  * 2026-07-21        munke                   최초개정
  */
 public class FileBody implements ResponseBody {
-    private static final int BUFFER_SIZE = 4096;
     private final File file;
 
     FileBody(File file) {

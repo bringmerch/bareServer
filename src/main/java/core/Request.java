@@ -1,7 +1,5 @@
 package core;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,7 +22,7 @@ public class Request {
     private Method method;
     private String path;
     private Map<String, String> query;
-    private HeaderMap header;
+    private Header header;
 
     public Method getMethod() {
         return this.method;
@@ -34,7 +32,7 @@ public class Request {
         return this.path;
     }
 
-    public HeaderMap getHeader() {
+    public Header getHeader() {
         return this.header;
     }
 
@@ -50,7 +48,7 @@ public class Request {
         this.path = path;
     }
 
-    public void setHeader(HeaderMap header) {
+    public void setHeader(Header header) {
         if (header == null || header.isEmpty())
             throw new IllegalArgumentException("setHeaders failed: empty header.");
         this.header = header;

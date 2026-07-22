@@ -2,6 +2,7 @@ package core;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.NullPointerException;
 
 /**
  *
@@ -20,6 +21,7 @@ import java.io.OutputStream;
  * 2026-07-21        munke                   최초개정
  */
 public interface ResponseBody {
-    long contentLength() throws IOException;
-    void writeTo(OutputStream outputStream) throws IOException;
+    int BUFFER_SIZE = 4096;
+    long contentLength();
+    void writeTo(OutputStream outputStream) throws IOException, BareException;
 }

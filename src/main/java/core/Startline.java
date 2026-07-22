@@ -1,7 +1,6 @@
 package core;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -20,6 +19,7 @@ import java.util.List;
  * 2026-07-21        munke                   최초개정
  */
 public record Startline (Method method,
-                         HashMap<String, String> query,
-                         String path){
+                         String path,
+                         Map<String, String> query
+                         ){
 }

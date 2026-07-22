@@ -1,5 +1,6 @@
 package core;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -11,9 +12,13 @@ public class Connector {
         while (!serverSocket.isClosed()) {
             ConnectionHandler handler = new ConnectionHandler();
             Socket clientSocket = serverSocket.accept();
-            handler.handle(clientSocket);
-            if (!clientSocket.isClosed())
+            try {
+                handler.handle(clientSocket);
+            } catch (BareException | IOException | IllegalArgumentException e) {
+                System.out.println("connection handling failed: " + e.getMessage());
+            } finally {
                 ResourceCloser.close(clientSocket);
+            }
         }
         ResourceCloser.close(serverSocket);
     }

@@ -1,8 +1,5 @@
 package core;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * Package Name: core
@@ -21,7 +18,7 @@ import java.util.List;
  */
 public class Response {
     private int statusCode;
-    private HeaderMap header = new HeaderMap();
+    private Header header = new Header();
     private ResponseBody body;
 
     Response(ResponseBody body) {
@@ -31,7 +28,6 @@ public class Response {
     }
 
     Response(int statusCode) {
-        validateStatusCode(statusCode);
         this.statusCode = statusCode;
     }
 
@@ -42,45 +38,21 @@ public class Response {
         this.statusCode = statusCode;
     }
 
-    public void setStatusCode(int statusCode) {
-        validateStatusCode(statusCode);
-        this.statusCode = statusCode;
-    }
-
     public int getStatusCode() {
         return this.statusCode;
     }
 
-    public void setHeader(HeaderMap header) {
+    public void setHeader(Header header) {
         this.header = header;
     }
 
-    public String getHeader(String fieldName) {
-        if (fieldName == null || fieldName.isBlank())
-            throw new IllegalArgumentException("fieldName must not be blank.");
-        if (!this.header.containsKey(fieldName))
-            throw new IllegalArgumentException("header doesn't exists.");
-        return this.header.get(fieldName);
-    }
-
-    public HeaderMap getHeader() {
-        return this.header;
+    public String getHeader(String key) {
+        if (key == null || key.isBlank())
+            throw new IllegalArgumentException("key must not be blank.");
+        return this.header.get(key);
     }
 
     public ResponseBody getBody() {
         return this.body;
-    }
-
-    public void setBody(ResponseBody body) {
-        if (body == null) {
-            throw new IllegalArgumentException("body must not be null.");
-        }
-        this.body = body;
-    }
-
-    private void validateStatusCode(int statusCode) {
-        if (statusCode < 100 || statusCode > 599) {
-            throw new IllegalArgumentException("statusCode must be between 100 and 599.");
-        }
     }
 }

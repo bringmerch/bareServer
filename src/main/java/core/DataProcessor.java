@@ -4,48 +4,41 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 public class DataProcessor {
-    public Request readRequest(BufferedReader bufferedReader) throws IOException, HttpException {
+    public Request readRequest(BufferedReader bufferedReader) throws IOException, BareException {
         if (bufferedReader == null)
-            throw new IllegalArgumentException("bufferedReader must not be null.");
+            throw new IllegalArgumentException("readRequest failed: bufferedReader is empty.");
         Request request = new Request();
         String rawStartline = readRawStartline(bufferedReader);
-        String rawHeaders = readRawHeaders(bufferedReader);
-        HeaderParser headerParser = new HeaderParser();
-        HeaderMap header = headerParser.parse(rawHeaders);
+        String rawHeader = readRawHeaders(bufferedReader);
+        Header header = HeaderParser.parse(rawHeader);
         request.setHeader(header);
-        StartlineParser startlineParser = new StartlineParser();
-        Startline startline = startlineParser.parse(header.get(), rawStartline);
+        Startline startline = StartlineParser.parse(header.get("host"), rawStartline);
         request.setMethod(startline.method());
         request.setPath(startline.path());
-        request.setQuery(startline.queryStrings());
+        if (!startline.query().isEmpty())
+            request.setQuery(startline.query());
         return request;
     }
 
-    private String readRawStartline(BufferedReader bufferedReader) throws IOException, HttpException {
+    private String readRawStartline(BufferedReader bufferedReader) throws IOException, BareException {
         String line = bufferedReader.readLine();
-        if (line == null || line.isBlank()) {
-            throw new HttpException(500, "Empty HTTP request start line.");
-        }
+        if (line == null || line.isBlank())
+            throw new BareException(500, "readRawStartline failed: startline is empty.");
         return line;
     }
 
-    private String readRawHeaders(BufferedReader bufferedReader) throws IOException, HttpException {
+    private String readRawHeaders(BufferedReader bufferedReader) throws IOException, BareException {
         StringBuilder lines = new StringBuilder();
         String line;
-
         while (true) {
             line = bufferedReader.readLine();
-            if (line == null || line.isBlank()) {
+            if (line == null || line.isBlank())
                 break;
-            }
             lines.append(line)
                  .append(Constants.CRLF.getValue());
         }
-
-        if (lines.isEmpty()) {
-            throw new HttpException(500, "At least 1 header is required.");
-        }
-
+        if (lines.isEmpty())
+            throw new BareException(500, "At least 1 header is required.");
         return lines.toString();
     }
 }
