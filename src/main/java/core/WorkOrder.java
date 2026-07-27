@@ -1,7 +1,5 @@
 package core;
 
-import javax.swing.text.AbstractDocument;
-
 /**
  *
  * Package Name: core
@@ -21,10 +19,15 @@ import javax.swing.text.AbstractDocument;
 public class WorkOrder {
     private String resourcePath;
     private ContentType contentType;
+    private int statusCode;
 
     WorkOrder(String resourcePath, ContentType contentType) {
         this.resourcePath = resourcePath;
         this.contentType = contentType;
+    }
+
+    WorkOrder(int statusCode) {
+        this.statusCode = statusCode;
     }
 
     public String getResourcePath() {
@@ -33,5 +36,9 @@ public class WorkOrder {
 
     public ContentType getContentType() {
         return this.contentType;
+    }
+
+    public int getStatusCode() {
+        return this.statusCode;
     }
 }

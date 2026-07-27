@@ -21,7 +21,7 @@ public class Connector {
                 System.out.println("connection handling failed: " + e.getMessage());
                 try {
                     if (clientSocket != null && (outputStream = clientSocket.getOutputStream()) != null)
-                        Writer.write(ErrorResponse.create(500), outputStream);
+                        Worker.sendError(500, outputStream);
                 } catch (Exception exception) {}
             } finally {
                 ResourceCloser.close(clientSocket);

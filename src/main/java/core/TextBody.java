@@ -38,23 +38,14 @@ public class TextBody implements ResponseBody {
         if (outputStream == null)
             throw new IllegalArgumentException("writeTo failed: output stream is empty.");
 
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-        if (outputStreamWriter == null)
-            throw new IOException("writeTo failed: outputStreamWriter is empty.");
-
-        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-        if (bufferedWriter == null)
-            throw new IOException("writeTo failed: bufferedWriter is null.");
-
-        int contentLength = (int)contentLength();
-
-        if (contentLength == 0)
+        if (body.isEmpty())
             throw new BareException(404, "writeTo failed: resource not found.");
 
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
         int offset = 0;
 
-        while (offset < contentLength) {
-            int end = Math.min(offset + BUFFER_SIZE, contentLength);
+        while (offset < body.length()) {
+            int end = Math.min(offset + BUFFER_SIZE, body.length());
             bufferedWriter.write(this.body, offset, end - offset);
             offset = end;
         }

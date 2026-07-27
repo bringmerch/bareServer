@@ -13,7 +13,6 @@ public class ConnectionHandler {
             throw new BareException(500, "handle failed: clientSocket is empty");
         BufferedReader bufferedReader = null;
         OutputStream outputStream = null;
-        Response response;
 
         try {
             if ((bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8))) == null)
@@ -25,14 +24,13 @@ public class ConnectionHandler {
             Container container = Container.findByPathAndMethod(request.getPath(), request.getMethod());
             Worker worker = container.getWorkerInstance();
             WorkOrder workOrder = new WorkOrder(container.getResourcePath(), container.getContentType());
-            response = worker.execute(workOrder);
-            Writer.write(response, outputStream);
+            worker.process(workOrder, outputStream);
         } catch (BareException e) {
-            Writer.write(ErrorResponse.create(e.getStatusCode()), outputStream);
+            Worker.sendError(e.getStatusCode(), outputStream);
         } catch (IllegalArgumentException e) {
-            Writer.write(ErrorResponse.create(400), outputStream);
+            Worker.sendError(400, outputStream);
         } catch (IOException e) {
-            Writer.write(ErrorResponse.create(500), outputStream);
+            Worker.sendError(500, outputStream);
         } finally {
             ResourceCloser.close(bufferedReader);
             ResourceCloser.close(outputStream);

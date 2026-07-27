@@ -26,7 +26,7 @@ public class ErrorResponse {
         ResponseBody body = createBody(statusCode);
         Response response = new Response(statusCode, body);
         response.setHeader(new Header(
-            Map.of("Content-type", ContentType.TEXT_HTML.getMIMEType())
+            Map.of("Content-Type", ContentType.TEXT_HTML.getMIMEType())
         ));
         return response;
     }
