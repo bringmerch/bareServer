@@ -46,15 +46,15 @@ public class TextBody implements ResponseBody {
         if (bufferedWriter == null)
             throw new IOException("writeTo failed: bufferedWriter is null.");
 
-        long len = body.length();
+        int contentLength = (int)contentLength();
 
-        if (len == 0)
+        if (contentLength == 0)
             throw new BareException(404, "writeTo failed: resource not found.");
 
         int offset = 0;
 
-        while (offset < len) {
-            int end = Math.min(offset + BUFFER_SIZE, body.length());
+        while (offset < contentLength) {
+            int end = Math.min(offset + BUFFER_SIZE, contentLength);
             bufferedWriter.write(this.body, offset, end - offset);
             offset = end;
         }
