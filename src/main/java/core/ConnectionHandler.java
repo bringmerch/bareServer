@@ -20,8 +20,8 @@ public class ConnectionHandler {
                 throw new IOException("handle failed: bufferedReader is empty");
             if ((outputStream = clientSocket.getOutputStream()) == null)
                 throw new BareException(500, "handle failed: outputStream is empty");
-            DataProcessor dataProcessor = new DataProcessor();
-            Request request = dataProcessor.readRequest(bufferedReader);
+            RequestReader requestReader = new RequestReader();
+            Request request = requestReader.readRequest(bufferedReader);
             Container container = Container.findByPathAndMethod(request.getPath(), request.getMethod());
             Worker worker = container.getWorkerInstance();
             WorkOrder workOrder = new WorkOrder(container.getResourcePath(), container.getContentType());

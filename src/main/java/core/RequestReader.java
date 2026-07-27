@@ -3,7 +3,7 @@ package core;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class DataProcessor {
+public class RequestReader {
     public Request readRequest(BufferedReader bufferedReader) throws IOException, BareException {
         if (bufferedReader == null)
             throw new IllegalArgumentException("readRequest failed: bufferedReader is empty.");
