@@ -55,7 +55,7 @@ public class TextBody implements ResponseBody {
 
         while (offset < len) {
             int end = Math.min(offset + BUFFER_SIZE, body.length());
-            bufferedWriter.write(this.body, offset, end);
+            bufferedWriter.write(this.body, offset, end - offset);
             offset = end;
         }
         bufferedWriter.flush();

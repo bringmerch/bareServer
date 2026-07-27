@@ -20,10 +20,6 @@ public class Writer {
     private static void writeHeader(int statusCode, String contentType, long contentLength, OutputStream outputStream) throws IOException {
         if (statusCode == 0)
             throw new IllegalArgumentException("writeHeader fail: statusCode is empty");
-        if (contentLength == 0)
-            throw new IllegalArgumentException("writeHeader fail: contentLength is empty");
-        if (contentType == null || contentType.isBlank())
-            throw new IllegalArgumentException("writeHeader fail: contentType is empty");
         if (outputStream == null)
             throw new IllegalArgumentException("writeHeader fail: output stream is empty");
 
