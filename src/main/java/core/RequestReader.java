@@ -17,7 +17,7 @@ public class RequestReader {
         request.setPath(startline.path());
         if (!startline.query().isEmpty())
             request.setQuery(startline.query());
-        return request;
+        return request; // TODO 여기있는 정보로 worker 반환할 것
     }
 
     private String readRawStartline(BufferedReader bufferedReader) throws IOException, BareException {

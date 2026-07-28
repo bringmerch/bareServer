@@ -22,7 +22,7 @@ public class Request {
     private Method method;
     private String path;
     private Map<String, String> query;
-    private Header header;
+    private Header header; // TODO Header에 method, path 집어넣기
 
     public Method getMethod() {
         return this.method;
