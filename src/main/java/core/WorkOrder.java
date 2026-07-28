@@ -17,9 +17,9 @@ package core;
  * 2026-07-22        munke                   최초개정
  */
 public class WorkOrder {
+    private int statusCode;
     private String resourcePath;
     private ContentType contentType;
-    private int statusCode;
 
     WorkOrder(String resourcePath, ContentType contentType) {
         this.resourcePath = resourcePath;
@@ -33,11 +33,9 @@ public class WorkOrder {
     public String getResourcePath() {
         return this.resourcePath;
     }
-
     public ContentType getContentType() {
         return this.contentType;
     }
-
     public int getStatusCode() {
         return this.statusCode;
     }

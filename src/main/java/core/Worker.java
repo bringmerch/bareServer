@@ -1,47 +1,44 @@
 package core;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.nio.charset.Charset;
 
-public interface Worker {
-    void process(WorkOrder workOrder, OutputStream outputStream) throws BareException, IOException;
+public abstract class Worker {
+    protected static final String newLine = Constants.CRLF.getValue();
+    protected static final Charset charset = Charset.forName("UTF-8");
+    private static final String USER_DIR = System.getProperty("user.dir");
+    private static final String RESOURCE_ROOT = "/src/main/resources";
 
-    default void sendResponse(Response response, OutputStream outputStream) throws BareException, IOException {
-        if (response == null)
-            throw new IllegalArgumentException("response must not be null.");
-        if (outputStream == null)
-            throw new IllegalArgumentException("outputStream must not be null.");
-        if (response.getBody() == null)
-            throw new BareException(500, "response body must not be null.");
+    public abstract void execute(WorkOrder workOrder, OutputStream outputStream) throws BareException, IOException;
+    protected abstract void writeBody(File file, OutputStream outputStream) throws IOException;
 
-        ResponseBody body = response.getBody();
-        writeHeader(response.getStatusCode(), response.getHeader("Content-Type"), body.contentLength(), outputStream);
-        body.writeTo(outputStream);
-        outputStream.flush();
-    }
-
-    static void sendError(int statusCode, OutputStream outputStream) {
-        if (outputStream == null)
-            return;
-
-        try {
-            new ErrorWorker().process(new WorkOrder(statusCode), outputStream);
-        } catch (Exception ignored) {
+    File loadFile(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("filePath must not be blank.");
         }
+        return new File(USER_DIR + RESOURCE_ROOT + filePath);
     }
 
-    private void writeHeader(int statusCode, String contentType, long contentLength, OutputStream outputStream) throws IOException {
+    protected void writeHeader(int statusCode, String contentType, OutputStream outputStream) throws IOException {
         if (statusCode == 0)
             throw new IllegalArgumentException("writeHeader fail: statusCode is empty");
         if (contentType == null || contentType.isBlank())
             throw new IllegalArgumentException("writeHeader fail: contentType is empty");
 
         String header =
-              "HTTP/1.1 " + statusCode + "\r\n"
-            + "Content-Type: " + contentType + "\r\n"
-            + "Content-Length: " + contentLength + "\r\n"
-            + "\r\n";
-        outputStream.write(header.getBytes(StandardCharsets.UTF_8));
+              "HTTP/1.1 " + statusCode + newLine
+            + "Content-Type: " + contentType + newLine
+            + "Transfer-Encoding: chunked" + newLine
+            + "Connection: close" + newLine
+            + newLine;
+        outputStream.write(header.getBytes(charset));
+    }
+
+    public static void executeErrorWorker(int statusCode, OutputStream outputStream) {
+        try {
+            new ErrorWorker().execute(new WorkOrder(statusCode), outputStream);
+        } catch (Exception e) { // 에러반환도 실패했으면 로그찍고 무시
+            System.out.println(e.getMessage());
+        }
     }
 }

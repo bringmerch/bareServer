@@ -2,11 +2,11 @@ package core;
 
 import java.lang.reflect.InvocationTargetException;
 
-public enum Container {
-    API_001("/index", Method.GET, "/static/html/index.html", StaticFileWorker.class, ContentType.TEXT_HTML),
-    API_002("/hello", Method.GET, "/static/html/hello.html", StaticFileWorker.class, ContentType.TEXT_HTML),
-    API_003("/balance", Method.GET, "/static/text/balance.txt", StaticFileWorker.class, ContentType.TEXT_PLAIN),
-    API_004("/panda", Method.GET, "/static/images/jpeg/panda.jpeg", StaticFileWorker.class, ContentType.IMAGE_JPEG);
+public enum Resource {
+    API_001("/index", Method.GET, "/static/html/index.html", StaticWorker.class, ContentType.TEXT_HTML),
+    API_002("/hello", Method.GET, "/static/html/hello.html", StaticWorker.class, ContentType.TEXT_HTML),
+    API_003("/balance", Method.GET, "/static/text/balance.txt", StaticWorker.class, ContentType.TEXT_PLAIN),
+    API_004("/panda", Method.GET, "/static/images/jpeg/panda.jpeg", StaticWorker.class, ContentType.IMAGE_JPEG);
 
     private final String path;
     private final Method method;
@@ -15,7 +15,7 @@ public enum Container {
     private final ContentType contentType;
 
 
-    Container(String path, Method method, String resourcePath, Class<? extends Worker> worker, ContentType contentType) {
+    Resource(String path, Method method, String resourcePath, Class<? extends Worker> worker, ContentType contentType) {
         this.path = path;
         this.method = method;
         this.resourcePath = resourcePath;
@@ -23,16 +23,16 @@ public enum Container {
         this.contentType = contentType;
     }
 
-    public static Container findByPathAndMethod(String path, Method method) throws BareException {
+    public static Resource findByPathAndMethod(String path, Method method) throws BareException {
         if (path == null || path.isBlank())
-            throw new BareException(404, "Container from() failed. path is empty.");
+            throw new BareException(404, "Resource from() failed. path is empty.");
 
-        for (Container container : Container.values()) {
-            if (container.path.equalsIgnoreCase(path) && container.method.equals(method))
-                return container;
+        for (Resource resource : Resource.values()) {
+            if (resource.path.equalsIgnoreCase(path) && resource.method.equals(method))
+                return resource;
         }
 
-        throw new BareException(404, "Container from() failed. no such route.");
+        throw new BareException(404, "Resource from() failed. no such route.");
     }
 
     public Worker getWorkerInstance() throws BareException {
