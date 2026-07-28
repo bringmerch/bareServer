@@ -11,9 +11,9 @@ public class ErrorWorker extends StaticWorker {
     @Override
     public void execute(WorkOrder workOrder,OutputStream outputStream) throws BareException, IOException {
         if (workOrder == null || workOrder.getStatusCode() == 0)
-            throw new IllegalArgumentException("ErrorWorker failed: wrong workOrder.");
+            throw new IllegalArgumentException("execute failed: wrong workOrder.");
         if (outputStream == null)
-            throw new IllegalArgumentException("ErrorWorker failed: outputStream is null.");
+            throw new IllegalArgumentException("execute failed: outputStream is null.");
 
         int statusCode = workOrder.getStatusCode();
 
