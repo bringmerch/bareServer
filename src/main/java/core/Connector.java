@@ -23,6 +23,5 @@ public class Connector {
                 ResourceCloser.close(outputStream);
             }
         }
-        ResourceCloser.close(serverSocket); // TODO 안탐!
     }
 }
