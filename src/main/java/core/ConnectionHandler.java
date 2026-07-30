@@ -7,23 +7,17 @@ public class ConnectionHandler {
     public void handle(final Socket clientSocket) throws BareException {
         if (clientSocket == null)
             throw new BareException(500, "handle failed: clientSocket is empty");
+
         InputStream inputStream; // bufferedReader 닫을 때 같이 닫힘
         OutputStream outputStream = null; // bufferedWriter 닫을 때 같이 닫힘
-        BufferedReader bufferedReader = null; // TODO bufferedReader,Writer만들 때 null 안 됨
-        BufferedWriter bufferedWriter = null;
+        BufferedReader bufferedReader = null;
 
         try {
-            if ((inputStream = clientSocket.getInputStream()) == null)
-                throw new IOException("handle failed: inputStream is empty");
-            if ((outputStream = clientSocket.getOutputStream()) == null)
-                throw new IOException("handle failed: outputStream is empty");
-            if ((bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) == null)
-                throw new IOException("handle failed: bufferedReader is empty");
-            if ((bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream))) == null)
-                throw new IOException("handle failed: bufferedWriter is empty");
+            inputStream = clientSocket.getInputStream(); // null 리턴 안 함
+            outputStream = clientSocket.getOutputStream(); // null 리턴 안 함
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream)); // null 리턴 안 함
 
             RequestReader requestReader = new RequestReader();
-            // 경로에 맞는 워커를 찾기 위해 요청을 읽는다.
             Request request = requestReader.readRequest(bufferedReader);
             Resource resource = Resource.findByPathAndMethod(request.getPath(), request.getMethod());
             Worker worker = resource.getWorkerInstance();
@@ -40,7 +34,7 @@ public class ConnectionHandler {
             Worker.executeErrorWorker(500, outputStream);
         } finally {
             ResourceCloser.close(bufferedReader);
-            ResourceCloser.close(bufferedWriter);
+            ResourceCloser.close(outputStream);
         }
     }
 }

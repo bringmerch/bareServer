@@ -5,8 +5,6 @@ import java.io.IOException;
 
 public class RequestReader {
     public Request readRequest(BufferedReader bufferedReader) throws IOException, BareException {
-        if (bufferedReader == null)
-            throw new IllegalArgumentException("readRequest failed: bufferedReader is empty.");
         Request request = new Request();
         String rawStartline = readRawStartline(bufferedReader);
         String rawHeader = readRawHeaders(bufferedReader);
