@@ -39,11 +39,6 @@ public class StaticWorker extends Worker {
         BufferedOutputStream bufferedOutputStream = null;
         BufferedInputStream bufferedInputStream = null;
         try {
-            if ((bufferedOutputStream = new BufferedOutputStream(outputStream)) == null)
-                throw new IOException("writeBody failed: empty bufferedOutputStream.");
-            if ((bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) == null)
-                throw new IOException("writeBody failed: empty bufferedInputStream.");
-
             byte[] bytes = new byte[4096];
             int bytesRead;
 

@@ -17,10 +17,6 @@ public class ConnectionHandler {
                 throw new IOException("handle failed: inputStream is empty");
             if ((outputStream = clientSocket.getOutputStream()) == null)
                 throw new IOException("handle failed: outputStream is empty");
-            if ((bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) == null)
-                throw new IOException("handle failed: bufferedReader is empty");
-            if ((bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream))) == null)
-                throw new IOException("handle failed: bufferedWriter is empty");
 
             RequestReader requestReader = new RequestReader();
             // 경로에 맞는 워커를 찾기 위해 요청을 읽는다.
