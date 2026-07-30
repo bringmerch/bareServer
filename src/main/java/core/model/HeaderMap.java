@@ -1,4 +1,4 @@
-package core;
+package core.model;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  *
  * Package Name: core
- * File Name: Header
+ * File Name: HeaderMap
  * Description:
  * author: munke
  *
@@ -20,11 +20,13 @@ import java.util.Map;
  * --------- ------------------- -------------------------------
  * 2026-07-02        munke                   최초개정
  */
-public class Header extends HashMap<String, String> {
-    Header(){}
-
-    Header(Map<String, String> initMap) {
+public class HeaderMap extends HashMap<String, String> {
+    public HeaderMap(){
         super();
+    }
+
+    HeaderMap(Map<String, String> initMap) {
+        this();
         for (Map.Entry<String, String> entry : initMap.entrySet()) {
             this.put(entry.getKey(), entry.getValue());
         }
@@ -33,20 +35,21 @@ public class Header extends HashMap<String, String> {
     @Override
     public String get(Object key) {
         if (!(key instanceof String))
-            throw new IllegalArgumentException("Header get failed: key isn't String type.");
+            throw new IllegalArgumentException("HeaderMap get failed: key isn't String type.");
         if (((String)key).isEmpty())
-            throw new IllegalArgumentException("Header get failed: key is empty.");
+            throw new IllegalArgumentException("HeaderMap get failed: key is empty.");
         return super.get(((String)key).toLowerCase());
     }
 
     @Override
     public String put(String key, String value) {
-        String newValue = "";
-        if (super.containsKey(key))
-            newValue = newValue + "," + super.get(key.toLowerCase(Locale.ROOT));
-        else
-            return super.put(key.toLowerCase(), value);
-        return super.put(key.toLowerCase(), newValue);
+        String newValue = value;
+        String cleanKey = key.trim().toLowerCase();
 
+        if (super.containsKey(cleanKey))
+            // 키 이미 있으면 원래 값에 append한다.
+            newValue = super.get(cleanKey) + "," + newValue;
+
+        return super.put(cleanKey, newValue);
     }
 }

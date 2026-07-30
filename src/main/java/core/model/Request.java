@@ -1,4 +1,6 @@
-package core;
+package core.model;
+
+import core.type.Method;
 
 import java.util.Map;
 
@@ -21,8 +23,8 @@ import java.util.Map;
 public class Request {
     private Method method;
     private String path;
-    private Map<String, String> query;
-    private Header header; // TODO Header에 method, path 집어넣기
+    private Map<String, String> queryMap;
+    private HeaderMap headerMap;
 
     public Method getMethod() {
         return this.method;
@@ -32,8 +34,12 @@ public class Request {
         return this.path;
     }
 
-    public Header getHeader() {
-        return this.header;
+    public HeaderMap getHeaderMap() {
+        return this.headerMap;
+    }
+
+    public Map<String, String> getQueryMap() {
+        return this.queryMap;
     }
 
     public void setMethod(Method method) {
@@ -48,15 +54,13 @@ public class Request {
         this.path = path;
     }
 
-    public void setHeader(Header header) {
-        if (header == null || header.isEmpty())
-            throw new IllegalArgumentException("setHeaders failed: empty header.");
-        this.header = header;
+    public void setHeaderMap(HeaderMap headerMap) {
+        if (headerMap == null || headerMap.isEmpty())
+            throw new IllegalArgumentException("setHeaders failed: empty headerMap.");
+        this.headerMap = headerMap;
     }
 
-    public void setQuery(Map<String, String> query) {
-        if (query == null || query.isEmpty())
-            throw new IllegalArgumentException("setQuery failed: empty query.");
-        this.query = query;
+    public void setQueryMap(Map<String, String> queryMap) {
+        this.queryMap = queryMap;
     }
 }

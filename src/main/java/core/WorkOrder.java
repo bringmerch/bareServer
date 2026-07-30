@@ -1,5 +1,10 @@
 package core;
 
+import core.model.HeaderMap;
+import core.type.ContentType;
+
+import java.util.Map;
+
 /**
  *
  * Package Name: core
@@ -18,25 +23,31 @@ package core;
  */
 public class WorkOrder {
     private int statusCode;
-    private String resourcePath;
-    private ContentType contentType;
+    HeaderMap headerMap;
+    Map<String, String> queryMap;
+    String resourcePath;
+    ContentType contentType;
 
-    WorkOrder(String resourcePath, ContentType contentType) {
+    WorkOrder(HeaderMap headerMap, Map queryMap, String resourcePath, ContentType contentType) {
+        this.headerMap = headerMap;
+        this.queryMap = queryMap;
         this.resourcePath = resourcePath;
         this.contentType = contentType;
     }
 
-    WorkOrder(int statusCode) {
+    public WorkOrder(int statusCode) {
         this.statusCode = statusCode;
     }
 
-    public String getResourcePath() {
-        return this.resourcePath;
-    }
-    public ContentType getContentType() {
-        return this.contentType;
-    }
     public int getStatusCode() {
         return this.statusCode;
+    }
+
+    public String getResourcePath(){
+        return this.resourcePath;
+    }
+
+    public ContentType getContentType() {
+        return this.contentType;
     }
 }

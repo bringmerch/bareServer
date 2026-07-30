@@ -1,5 +1,7 @@
 package core;
 
+import core.worker.Worker;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -16,16 +18,7 @@ public class ConnectionHandler {
             inputStream = clientSocket.getInputStream(); // null 리턴 안 함
             outputStream = clientSocket.getOutputStream(); // null 리턴 안 함
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream)); // null 리턴 안 함
-
-            RequestReader requestReader = new RequestReader();
-            Request request = requestReader.readRequest(bufferedReader);
-            Resource resource = Resource.findByPathAndMethod(request.getPath(), request.getMethod());
-            Worker worker = resource.getWorkerInstance();
-            WorkOrder workOrder = new WorkOrder(resource.getResourcePath(), resource.getContentType());
-            worker.execute(workOrder, outputStream);
-
-            //////// TODO 아래 한 줄처럼 줄이고 RequestReader에 다 넣기 or RequestHandler로 감싸서 그 안에서 하기
-//            RequestReader.readRequestAndGetWorker(bufferedReader).execute();
+            new RequestHandler().handle(bufferedReader, outputStream);
         } catch (BareException e) {
             Worker.executeErrorWorker(e.getStatusCode(), outputStream);
         } catch (IllegalArgumentException e) {

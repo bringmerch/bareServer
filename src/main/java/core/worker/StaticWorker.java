@@ -1,4 +1,9 @@
-package core;
+package core.worker;
+
+import core.BareException;
+import core.ResourceCloser;
+import core.WorkOrder;
+import core.type.ContentType;
 
 import java.io.*;
 

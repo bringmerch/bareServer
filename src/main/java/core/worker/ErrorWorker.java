@@ -1,4 +1,8 @@
-package core;
+package core.worker;
+
+import core.BareException;
+import core.WorkOrder;
+import core.type.ContentType;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,15 +12,15 @@ public class ErrorWorker extends StaticWorker {
     private static final String ERROR_PAGE_DIR = "/static/html/error/";
 
     @Override
-    public void execute(WorkOrder workOrder,OutputStream outputStream) throws BareException, IOException {
-        if (workOrder == null || workOrder.getStatusCode() == 0)
+    public void execute(WorkOrder workOrder, OutputStream outputStream) throws BareException, IOException {
+        if (workOrder.getStatusCode() == 0)
             throw new IllegalArgumentException("execute failed: wrong workOrder.");
 
         int statusCode = workOrder.getStatusCode();
 
         File file = loadFile(ERROR_PAGE_DIR + statusCode + ".html");
         if (!file.isFile())
-            throw new BareException(404, "TextWorker failed: resource not found.");
+            throw new BareException(404, "execute failed: resource not found.");
 
         writeHeader(statusCode, ContentType.TEXT_HTML.getMIMEType(), outputStream);
         writeBody(file, outputStream);
