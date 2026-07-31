@@ -1,7 +1,5 @@
 package core;
 
-import java.io.IOException;
-
 /**
  *
  * Package Name: core
@@ -22,7 +20,8 @@ public class BareServer {
     // application start
     public static void main(String[] args) throws Exception {
         try {
-            new Connector().start();
+            ApplicationContext applicationContext = new ApplicationContext();
+            new Connector().start(applicationContext);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

@@ -1,5 +1,6 @@
 package core.model;
 
+import core.session.Session;
 import core.type.Method;
 
 import java.util.Map;
@@ -25,6 +26,8 @@ public class Request {
     private String path;
     private Map<String, String> queryMap;
     private HeaderMap headerMap;
+    private String body;
+    private Session session;
 
     public Method getMethod() {
         return this.method;
@@ -32,6 +35,10 @@ public class Request {
 
     public String getPath() {
         return this.path;
+    }
+
+    public String getBody() {
+        return this.body;
     }
 
     public HeaderMap getHeaderMap() {
@@ -62,5 +69,9 @@ public class Request {
 
     public void setQueryMap(Map<String, String> queryMap) {
         this.queryMap = queryMap;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }

@@ -1,5 +1,6 @@
 package core;
 
+import core.interceptor.InterceptorRegistry;
 import core.model.Request;
 import core.type.Resource;
 import core.worker.Worker;
@@ -24,6 +25,7 @@ import java.io.OutputStream;
  */
 public class Dispatcher {
     public static void dispatch(Request request, OutputStream outputStream) throws BareException, IOException {
+        InterceptorRegistry.runPreHandles();
         Resource resource = Resource.find(request.getPath(), request.getMethod());
         Worker worker = resource.createWorker();
         worker.execute(

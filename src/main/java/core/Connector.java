@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Connector {
-    public void start() throws Exception {
+    public void start(ApplicationContext applicationContext) throws Exception {
         ServerSocket serverSocket;
         serverSocket = new ServerSocket(8080);
 
