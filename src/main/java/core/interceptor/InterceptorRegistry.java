@@ -1,7 +1,9 @@
 package core.interceptor;
 
 import core.model.Request;
+import core.model.Response;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,16 +23,17 @@ import java.util.List;
  * 2026-07-31        munke                   최초개정
  */
 public class InterceptorRegistry {
-    private static final List<Interceptor> interceptors = List.of(new SessionInterceptor());
+    private final List<Interceptor> interceptors = new ArrayList<>();
 
-    public void runPreHandles(Request request) {
-        for (Interceptor i : interceptors) {
-            if (i.preHandle())
-                continue;
-        }
+    public InterceptorRegistry() {
+        this.interceptors.add(new SessionInterceptor());
     }
 
-    public void runPostHandles(Response response) {
-
+    public boolean doIntercept(Request request, Response response) {
+        for (Interceptor i : this.interceptors) {
+            if (!i.preHandle(request, response))
+                return false;
+        }
+        return true;
     }
 }

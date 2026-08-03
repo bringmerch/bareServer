@@ -1,6 +1,7 @@
 package core.interceptor;
 
 import core.model.Request;
+import core.model.Response;
 
 /**
  *
@@ -20,5 +21,4 @@ import core.model.Request;
  */
 public interface Interceptor {
     boolean preHandle(Request request, Response response);
-    boolean postHandle(Request request, Response response);
 }

@@ -3,7 +3,7 @@ package core.type;
 /**
  *
  * Package Name: core
- * File Name: Method
+ * File Name: MethodType
  * Description:
  * author: munke
  *
@@ -16,14 +16,14 @@ package core.type;
  * --------- ------------------- -------------------------------
  * 2026-07-06        munke                   최초개정
  */
-public enum Method {
+public enum MethodType {
     GET("GET"),
     POST("POST"),
     PUT("PUT");
 
     private final String method;
 
-    Method(String method) {
+    MethodType(String method) {
         this.method = method;
     }
 
@@ -31,17 +31,17 @@ public enum Method {
         return method;
     }
 
-    public static Method from(String method) {
+    public static MethodType from(String method) {
         if (method == null || method.isBlank())
-            throw new IllegalArgumentException("Method find failed: empty method.");
+            throw new IllegalArgumentException("MethodType find failed: empty methodType.");
 
         method = method.toUpperCase();
 
-        for (Method value : Method.values()) {
+        for (MethodType value : MethodType.values()) {
             if (value.getMethod().equalsIgnoreCase(method))
                 return value;
         }
 
-        throw new IllegalArgumentException("Unknown method: " + method);
+        throw new IllegalArgumentException("Unknown methodType: " + method);
     }
 }

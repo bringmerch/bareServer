@@ -1,11 +1,10 @@
 package core;
 
-import core.interceptor.InterceptorRegistry;
-import core.model.Request;
-import core.type.Resource;
-import core.worker.Worker;
+import core.handlerResult.HandlerResult;
+import core.model.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -24,13 +23,23 @@ import java.io.OutputStream;
  * 2026-07-30        munke                   최초개정
  */
 public class Dispatcher {
-    public static void dispatch(Request request, OutputStream outputStream) throws BareException, IOException {
-        InterceptorRegistry.runPreHandles();
-        Resource resource = Resource.find(request.getPath(), request.getMethod());
-        Worker worker = resource.createWorker();
-        worker.execute(
-            new WorkOrder(request.getHeaderMap(), request.getQueryMap(), resource.getResourcePath(), resource.getContentType()),
-            outputStream
-        );
+    public static void dispatch(Request request,
+                                OutputStream outputStream,
+                                ApplicationContext applicationContext) throws BareException, IOException, InvocationTargetException, IllegalAccessException {
+        Response response = new Response();
+
+        if (applicationContext.getInterceptorRegistry().doIntercept(request, response))
+            throw new BareException(500, "intercept failed: interceptor error.");
+
+
+        String staticResourcePath = applicationContext.getHandlerMapping().getStaticResourcePath(request.getPath());
+        if (staticResourcePath != null) {
+            request.setResourcePath(staticResourcePath);
+        }
+
+        HandlerMethod handlerMethod = applicationContext.getHandlerMapping().findHandlerMethod(request.getPath(), request.getMethod());
+        HandlerResult handlerResult = (HandlerResult)handlerMethod.method().invoke(handlerMethod.handler(), request, response);
+        HandlerResult.doResponse()
+
     }
 }

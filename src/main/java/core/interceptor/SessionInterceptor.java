@@ -1,6 +1,7 @@
 package core.interceptor;
 
 import core.model.Request;
+import core.model.Response;
 import core.session.Session;
 import core.session.SessionManager;
 
@@ -27,12 +28,6 @@ public class SessionInterceptor implements Interceptor {
             Session session = SessionManager.createSession()
 
 
-        return true;
-    }
-
-    @Override
-    public boolean postHandle(Request request, Response response) {
-        // 암것도 안함.
         return true;
     }
 }

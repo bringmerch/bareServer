@@ -1,7 +1,7 @@
 package core.worker;
 
 import core.BareException;
-import core.WorkOrder;
+import core.model.WorkOrder;
 import core.type.ContentType;
 
 import java.io.File;

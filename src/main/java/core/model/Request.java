@@ -1,7 +1,7 @@
 package core.model;
 
 import core.session.Session;
-import core.type.Method;
+import core.type.MethodType;
 
 import java.util.Map;
 
@@ -22,15 +22,16 @@ import java.util.Map;
  * 2026-07-01        munke                   최초개정
  */
 public class Request {
-    private Method method;
+    private MethodType methodType;
     private String path;
     private Map<String, String> queryMap;
     private HeaderMap headerMap;
     private String body;
+    private String resourcePath;
     private Session session;
 
-    public Method getMethod() {
-        return this.method;
+    public MethodType getMethod() {
+        return this.methodType;
     }
 
     public String getPath() {
@@ -49,10 +50,14 @@ public class Request {
         return this.queryMap;
     }
 
-    public void setMethod(Method method) {
-        if (method == null)
-            throw new IllegalArgumentException("method must not be null.");
-        this.method = method;
+    public String getResourcePath() {
+        return this.resourcePath;
+    }
+
+    public void setMethod(MethodType methodType) {
+        if (methodType == null)
+            throw new IllegalArgumentException("methodType must not be null.");
+        this.methodType = methodType;
     }
 
     public void setPath(String path) {
@@ -65,6 +70,10 @@ public class Request {
         if (headerMap == null || headerMap.isEmpty())
             throw new IllegalArgumentException("setHeaders failed: empty headerMap.");
         this.headerMap = headerMap;
+    }
+
+    public void setResourcePath(String resourcePath) {
+        this.resourcePath = resourcePath;
     }
 
     public void setQueryMap(Map<String, String> queryMap) {

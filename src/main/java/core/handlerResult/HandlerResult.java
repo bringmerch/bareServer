@@ -1,36 +1,35 @@
-package core.worker;
+package core.handlerResult;
 
-import core.BareException;
 import core.ResourceCloser;
-import core.model.WorkOrder;
-import core.type.ContentType;
 
 import java.io.*;
 
 /**
  *
  * Package Name: core
- * File Name: StaticWorker
+ * File Name: HandlerResult
  * Description:
  * author: munke
  *
  * @version 1.0
  * @see core
- * @since 2026-07-28
+ * @since 2026-08-03
  * <p>
  * Modification Information
  * 수정일          수정자                    수정내용
  * --------- ------------------- -------------------------------
- * 2026-07-28        munke                   최초개정
+ * 2026-08-03        munke                   최초개정
  */
-public class StaticWorker extends Worker {
-    @Override
-    public void execute(WorkOrder workOrder, OutputStream outputStream) throws BareException, IOException {
+public sealed interface HandlerResult
+    permits TextResult, JsonResult, FileResult, HTMLResult {
 
+    public void writeBody(File file, OutputStream outputStream) throws IOException {
+        writeFile();
     }
 
-    @Override
-    protected void writeBody(File file, OutputStream outputStream) throws IOException {
+    public abstract void writeBody(Ou)
+
+    public void writeFile() {
         BufferedOutputStream bufferedOutputStream = null;
         BufferedInputStream bufferedInputStream = null;
         try {
@@ -57,4 +56,5 @@ public class StaticWorker extends Worker {
             ResourceCloser.close(bufferedOutputStream);
         }
     }
+
 }

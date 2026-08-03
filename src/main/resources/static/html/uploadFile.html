@@ -35,7 +35,7 @@
 
             // fetch로 서버에 전송
             const response = await fetch('http://localHost:8080/upload/file', { // 실제 서버 업로드 엔드포인트 입력
-                method: 'POST',
+                methodType: 'POST',
                 body: formData
             });
 

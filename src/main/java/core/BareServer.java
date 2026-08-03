@@ -20,8 +20,7 @@ public class BareServer {
     // application start
     public static void main(String[] args) throws Exception {
         try {
-            ApplicationContext applicationContext = new ApplicationContext();
-            new Connector().start(applicationContext);
+            new Connector().listen(new ApplicationContext());
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

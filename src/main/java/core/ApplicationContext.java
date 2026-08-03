@@ -1,6 +1,16 @@
 package core;
 
+import core.handler.DynamicHandler;
+import core.handler.Handler;
+import core.handler.StaticHandler;
+import core.interceptor.InterceptorRegistry;
+import core.model.HandlerMapping;
+import core.model.Route;
 import core.session.SessionManager;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -20,11 +30,26 @@ import core.session.SessionManager;
  */
 public class ApplicationContext {
     private final SessionManager sessionManager;
+    private final InterceptorRegistry interceptorRegistry;
     private final Dispatcher dispatcher;
+    private final HandlerMapping handlerMapping;
 
-    public ApplicationContext() {
-        sessionManager = new SessionManager();
-        dispatcher = new Dispatcher();
+    public ApplicationContext() throws NoSuchMethodException {
+        this.sessionManager = new SessionManager();
+        this.dispatcher = new Dispatcher();
+        this.handlerMapping = new HandlerMapping();
+        this.interceptorRegistry = new InterceptorRegistry();
     }
 
+    public HandlerMapping getHandlerMapping() {
+        return handlerMapping;
+    }
+
+    public Dispatcher getDispatcher() {
+        return dispatcher;
+    }
+
+    public InterceptorRegistry getInterceptorRegistry() {
+        return interceptorRegistry;
+    }
 }

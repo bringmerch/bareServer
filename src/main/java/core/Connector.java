@@ -5,17 +5,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Connector {
-    public void start(ApplicationContext applicationContext) throws Exception {
+    public void listen(ApplicationContext applicationContext) throws Exception {
         ServerSocket serverSocket;
         serverSocket = new ServerSocket(8080);
 
         while (!serverSocket.isClosed()) {
-            ConnectionHandler handler = new ConnectionHandler();
+            RequestHandler handler = new RequestHandler();
             Socket clientSocket = null;
             OutputStream outputStream = null;
             try {
                 clientSocket = serverSocket.accept();
-                handler.handle(clientSocket);
+                handler.handle(clientSocket, applicationContext);
             } catch (Exception e) {
                 System.out.println("connection handling failed: " + e.getMessage());
             } finally {

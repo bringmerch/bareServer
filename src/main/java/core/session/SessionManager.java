@@ -23,18 +23,19 @@ import java.util.concurrent.TimeUnit;
  */
 public class SessionManager {
     private final ConcurrentHashMap<String, Session> sessionMap = new ConcurrentHashMap<>();
-
     private static final long MAX_INACTIVE_INTERVAL = 2 * 60 * 60 * 1000L; // 두시간
-    private final ScheduledExecutorService cleaner;
 
     public SessionManager() {
-        this.cleaner = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        this.startCleaner();
+    }
+
+    public void startCleaner() {
+        ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable);
             thread.setDaemon(true);
             return thread;
         });
-
-        this.cleaner.scheduleAtFixedRate(this::cleanExpiredSessions, 1, 1, TimeUnit.MINUTES);
+        cleaner.scheduleAtFixedRate(this::cleanExpiredSessions, 1, 1, TimeUnit.MINUTES);
     }
 
     public Session createSession() {

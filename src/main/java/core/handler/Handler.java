@@ -1,15 +1,19 @@
-package core.worker;
+package core.handler;
 
 import core.BareException;
-import core.WorkOrder;
+import core.handlerResult.HandlerResult;
 import core.model.HeaderMap;
 import core.model.Request;
+import core.model.Response;
+import core.model.WorkOrder;
 import core.type.Constants;
-import core.type.Method;
-import core.type.Resource;
+import core.type.MethodType;
+import core.worker.ErrorWorker;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -17,17 +21,34 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Worker {
+/**
+ *
+ * Package Name: core.handler
+ * File Name: Handler
+ * Description:
+ * author: munke
+ *
+ * @version 1.0
+ * @see core.handler
+ * @since 2026-08-03
+ * <p>
+ * Modification Information
+ * 수정일          수정자                    수정내용
+ * --------- ------------------- -------------------------------
+ * 2026-08-03        munke                   최초개정
+ */
+public abstract class Handler {
     protected static final String newLine = Constants.CRLF.getValue();
     protected static final Charset charset = Charset.forName("UTF-8");
     private static final String USER_DIR = System.getProperty("user.dir");
     private static final String RESOURCE_ROOT = "/src/main/resources";
 
-    public abstract void execute(WorkOrder workOrder, OutputStream outputStream) throws BareException, IOException;
+    public static Request readRequest(BufferedReader bufferedReader) throws IOException, BareException {
+        String rawRequest = readRequestAsString(bufferedReader);
+        return parseRequest(rawRequest);
+    }
 
-    protected abstract void writeBody(File file, OutputStream outputStream) throws IOException;
-
-    public static String readRequestAsString(BufferedReader bufferedReader) throws IOException, BareException {
+    private static String readRequestAsString(BufferedReader bufferedReader) throws IOException, BareException {
         String result = "";
 
         // 1. startline
@@ -51,7 +72,7 @@ public abstract class Worker {
         return result.concat(startline).concat(newLine).concat(headerlines.toString());
     }
 
-    public static Request parseRequest(String rawRequest) {
+    private static Request parseRequest(String rawRequest) {
         Request request = new Request();
 
         if (rawRequest == null || rawRequest.isBlank())
@@ -76,13 +97,13 @@ public abstract class Worker {
         if (headerMap.get("Host") == null || headerMap.get("Host").isBlank())
             throw new IllegalArgumentException("parse failed: Host header is required.");
 
-        // 2. method, path
+        // 2. methodType, path
         String[] parts = lines[0].split("\\s"); // 공백으로 쪼갬
 
         if (parts.length != 3)
             throw new IllegalArgumentException("parse failed: invalid parts length. lines[0] is: " + lines[0]);
 
-        Method method = Method.from(parts[0]);
+        MethodType methodType = MethodType.from(parts[0]);
         String rawPath = parts[1];
 
         boolean isAbsoluteUrl = rawPath.startsWith("http://") || rawPath.startsWith("https://");
@@ -116,7 +137,7 @@ public abstract class Worker {
             }
         }
 
-        request.setMethod(method);
+        request.setMethod(methodType);
         request.setPath(url.getPath());
         request.setQueryMap(queryMap);
         request.setHeaderMap(headerMap);
@@ -138,13 +159,15 @@ public abstract class Worker {
             throw new IllegalArgumentException("writeHeader fail: contentType is empty");
 
         String header =
-              "HTTP/1.1 " + statusCode + newLine
-            + "Content-Type: " + contentType + newLine
-            + "Transfer-Encoding: chunked" + newLine
-            + "Connection: close" + newLine
-            + newLine;
+            "HTTP/1.1 " + statusCode + newLine
+                + "Content-Type: " + contentType + newLine
+                + "Transfer-Encoding: chunked" + newLine
+                + "Connection: close" + newLine
+                + newLine;
         outputStream.write(header.getBytes(charset));
     }
+
+    protected abstract void writeBody(HandlerResult handlerResult, OutputStream outputStream);
 
     public static void executeErrorWorker(int statusCode, OutputStream outputStream) {
         try {
@@ -153,4 +176,13 @@ public abstract class Worker {
             System.out.println(e.getMessage());
         }
     }
+
+    public void doResponse(Response response, HandlerResult handlerResult, OutputStream outputStream) {
+        this.writeHeader(response, outputStream);
+        this.writeBody(handlerResult, outputStream);
+    }
+
+
+
+
 }
