@@ -30,7 +30,7 @@ public class Request {
     private String resourcePath;
     private Session session;
 
-    public MethodType getMethod() {
+    public MethodType getMethodType() {
         return this.methodType;
     }
 
@@ -54,6 +54,10 @@ public class Request {
         return this.resourcePath;
     }
 
+    public Session getSession() {
+        return this.session;
+    }
+
     public void setMethod(MethodType methodType) {
         if (methodType == null)
             throw new IllegalArgumentException("methodType must not be null.");
@@ -66,14 +70,18 @@ public class Request {
         this.path = path;
     }
 
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
     public void setHeaderMap(HeaderMap headerMap) {
         if (headerMap == null || headerMap.isEmpty())
             throw new IllegalArgumentException("setHeaders failed: empty headerMap.");
         this.headerMap = headerMap;
     }
 
-    public void setResourcePath(String resourcePath) {
-        this.resourcePath = resourcePath;
+    public void setResourcePath(String ResourcePath) {
+        this.resourcePath = ResourcePath;
     }
 
     public void setQueryMap(Map<String, String> queryMap) {

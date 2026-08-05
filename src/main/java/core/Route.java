@@ -1,11 +1,11 @@
-package core.handlerResult;
+package core;
 
-import java.io.File;
+import core.type.MethodType;
 
 /**
  *
  * Package Name: core
- * File Name: FileResult
+ * File Name: Route
  * Description:
  * author: munke
  *
@@ -18,4 +18,4 @@ import java.io.File;
  * --------- ------------------- -------------------------------
  * 2026-08-03        munke                   최초개정
  */
-public record FileResult(File file) implements HandlerResult {}
+public record Route(String path, MethodType methodType) {}

@@ -1,7 +1,9 @@
 package core.interceptor;
 
+import core.ResourceMapping;
 import core.model.Request;
 import core.model.Response;
+import core.session.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +27,12 @@ import java.util.List;
 public class InterceptorRegistry {
     private final List<Interceptor> interceptors = new ArrayList<>();
 
-    public InterceptorRegistry() {
-        this.interceptors.add(new SessionInterceptor());
+    public InterceptorRegistry(SessionManager sessionManager, ResourceMapping resourceMapping) {
+        this.interceptors.add(new SessionInterceptor(sessionManager));
+        this.interceptors.add(new ResourceMappingInterceptor(resourceMapping));
     }
 
-    public boolean doIntercept(Request request, Response response) {
+    public boolean doInterceptors(Request request, Response response) {
         for (Interceptor i : this.interceptors) {
             if (!i.preHandle(request, response))
                 return false;

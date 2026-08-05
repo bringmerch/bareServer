@@ -1,56 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Simple Index Page</title>
-    <style>
-        /* Basic styling to make the page look clean */
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 40px auto;
-            max-width: 800px;
-            padding: 0 20px;
-            color: #333;
-            background-color: #f9f9f9;
-        }
-        header {
-            border-bottom: 2px solid #eee;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 0.9em;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
+    <head>
+        <link rel="stylesheet" href="/css/style">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Index</title>
+    </head>
+    <body>
+        <header>
+            <h1>Hello, <span id="b-session-id"></span>!</h1>
+            <p>A simple HTML template to get you started.</p>
+        </header>
 
-<header>
-    <h1>Here's your index.html !</h1>
-    <p>A simple HTML template to get you started.</p>
-</header>
+        <main>
+            <h2>About This Page</h2>
+            <p>This is a standard HTML5 template. You can use it to build any basic web content quickly.</p>
 
-<main>
-    <h2>About This Page</h2>
-    <p>This is a standard HTML5 template. You can use it to build any basic web content quickly.</p>
+            <h3>Things you can add:</h3>
+            <ul>
+                <li>Custom CSS styles inside the head tags.</li>
+                <li>Images, forms, and navigation menus.</li>
+                <li>Interactive JavaScript scripts before the closing body tag.</li>
+            </ul>
+        </main>
 
-    <h3>Things you can add:</h3>
-    <ul>
-        <li>Custom CSS styles inside the head tags.</li>
-        <li>Images, forms, and navigation menus.</li>
-        <li>Interactive JavaScript scripts before the closing body tag.</li>
-    </ul>
-</main>
-
-<footer>
-    <p>&copy; 2026 My Simple Website</p>
-</footer>
-<div id="placeholder"></div>
-</body>
+        <footer>
+            <p>&copy; 2026 My Simple Website</p>
+        </footer>
+    </body>
 </html>
+<script>
+    const model = window.page_variables;
+    let user;
+    if (model.b-session-id)
+        user = 'Session-id : ' + model.b-session-id;
+    else
+        user = 'Stranger'
+
+    document.getElementById("b-session-id").innerHTML = user + '!';
+</script>

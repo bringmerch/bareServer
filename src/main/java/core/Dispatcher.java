@@ -1,10 +1,8 @@
 package core;
 
-import core.handlerResult.HandlerResult;
 import core.model.*;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
+
+import java.io.*;
 
 /**
  *
@@ -23,23 +21,34 @@ import java.lang.reflect.InvocationTargetException;
  * 2026-07-30        munke                   최초개정
  */
 public class Dispatcher {
-    public static void dispatch(Request request,
-                                OutputStream outputStream,
-                                ApplicationContext applicationContext) throws BareException, IOException, InvocationTargetException, IllegalAccessException {
+    ApplicationContext applicationContext;
+
+    public Dispatcher(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    public void dispatch(InputStream inputStream, OutputStream outputStream) throws IOException {
         Response response = new Response();
-
-        if (applicationContext.getInterceptorRegistry().doIntercept(request, response))
-            throw new BareException(500, "intercept failed: interceptor error.");
-
-
-        String staticResourcePath = applicationContext.getHandlerMapping().getStaticResourcePath(request.getPath());
-        if (staticResourcePath != null) {
-            request.setResourcePath(staticResourcePath);
+        BufferedReader bufferedReader = null;
+        try {
+            // 요청읽기
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            Request request = Reader.readRequest(bufferedReader);
+            // 인터셉터
+            if (!this.applicationContext.getInterceptorRegistry().doInterceptors(request, response))
+                throw new BareException(500, "intercept failed: interceptor returned true.");
+            // 컨트롤러
+            Handler.handle(this.applicationContext.getHandlerMapping(), request, response);
+            // 응답
+            new Writer().writeResponse(response, outputStream);
+        } catch (BareException e) {
+            System.out.println("dispatch failed: " + e.getMessage() + "");
+            new ErrorHandlerImpl().serveErrorPage(e.getStatusCode(), response);
+        } catch (Exception e) {
+            System.out.println("dispatch failed: " + e.getMessage() + "");
+            new ErrorHandlerImpl().serveErrorPage(500, response);
+        } finally {
+            ResourceCloser.close(bufferedReader);
         }
-
-        HandlerMethod handlerMethod = applicationContext.getHandlerMapping().findHandlerMethod(request.getPath(), request.getMethod());
-        HandlerResult handlerResult = (HandlerResult)handlerMethod.method().invoke(handlerMethod.handler(), request, response);
-        HandlerResult.doResponse()
-
     }
 }

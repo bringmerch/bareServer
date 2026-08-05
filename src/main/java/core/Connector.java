@@ -10,17 +10,12 @@ public class Connector {
         serverSocket = new ServerSocket(8080);
 
         while (!serverSocket.isClosed()) {
-            RequestHandler handler = new RequestHandler();
             Socket clientSocket = null;
-            OutputStream outputStream = null;
             try {
                 clientSocket = serverSocket.accept();
-                handler.handle(clientSocket, applicationContext);
-            } catch (Exception e) {
-                System.out.println("connection handling failed: " + e.getMessage());
+                new ClientHandler().handle(clientSocket, applicationContext);
             } finally {
                 ResourceCloser.close(clientSocket);
-                ResourceCloser.close(outputStream);
             }
         }
     }

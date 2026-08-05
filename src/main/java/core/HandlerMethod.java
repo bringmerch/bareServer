@@ -1,10 +1,10 @@
-package core.handlerResult;
+package core;
 
 /**
  *
  * Package Name: core
- * File Name: JsonResult
- * Description:
+ * File Name: HandlerMethod
+ * Description: Handler MethodType
  * author: munke
  *
  * @version 1.0
@@ -16,6 +16,5 @@ package core.handlerResult;
  * --------- ------------------- -------------------------------
  * 2026-08-03        munke                   최초개정
  */
-public class JsonResult extends HandlerResult {
-    Object content;
+public record HandlerMethod(Handler handler, java.lang.reflect.Method method) {
 }

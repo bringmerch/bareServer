@@ -1,7 +1,7 @@
-package core.model;
+package core;
 
-import core.handler.DynamicHandler;
-import core.handler.StaticHandler;
+import core.model.Request;
+import core.model.Response;
 import core.type.MethodType;
 
 import java.lang.reflect.Method;
@@ -28,38 +28,38 @@ public class HandlerMapping {
     private final Map<Route, HandlerMethod> mappings = new HashMap<>();
 
     public HandlerMapping() throws NoSuchMethodException {
-        // 1. mappings
-        StaticHandler staticHandler = new StaticHandler();
-        Method staticHandlerMethod = StaticHandler.class.getDeclaredMethod("serve", Request.class, Response.class);
-        DynamicHandler dynamicHandler = new DynamicHandler();
+        // 현재 컨트롤러 1개.
+        BasicHandlerImpl basicHandlerImpl = new BasicHandlerImpl();
 
+        // TODO : 메서드 선언에 애노테이션 붙여서 동적으로 만들기....
         mappings.put(
             new Route("/index", MethodType.GET),
-            new HandlerMethod(staticHandler, staticHandlerMethod, "/html/index.html")
+            new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getIndex"))
         );
         mappings.put(
-            new Route("/hello", MethodType.GET),
-            new HandlerMethod(staticHandler, staticHandlerMethod, "/html/hello.html")
+            new Route("/panda", MethodType.GET), // TODO : 와일드카드
+            new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getFile"))
         );
         mappings.put(
-            new Route("/panda", MethodType.GET),
-            new HandlerMethod(staticHandler, staticHandlerMethod, "/image/jpeg/panda.jpeg")
+            new Route("/css/style", MethodType.GET), // TODO : 와일드카드
+            new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getFile"))
         );
         mappings.put(
             new Route("/balance", MethodType.GET),
-            new HandlerMethod(dynamicHandler, DynamicHandler.class.getDeclaredMethod("balance", Request.class), null)
+            new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getBalance"))
         );
+    }
+
+    private Method getMethod(Handler handler, String method) throws NoSuchMethodException {
+        return handler.getClass().getDeclaredMethod(method, Request.class, Response.class);
     }
 
     public HandlerMethod findHandlerMethod(String path, MethodType methodType) {
         HandlerMethod handlerMethod;
+
         if ((handlerMethod = mappings.get(new Route(path, methodType))) != null)
             return handlerMethod;
         else
-            throw new IllegalArgumentException("HandlerMapping findHandlerMethod failed: no such route.");
-    }
-
-    public String getStaticResourcePath(String path) {
-        return staticResourceMap.get(path);
+            throw new IllegalArgumentException("findHandlerMethod failed: no such route for path : " + path);
     }
 }
