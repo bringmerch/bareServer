@@ -1,5 +1,6 @@
 package core.session;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,7 +24,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class SessionManager {
     private final ConcurrentHashMap<String, Session> sessionMap = new ConcurrentHashMap<>();
-    private static final long MAX_INACTIVE_INTERVAL = 2 * 60 * 60 * 1000L; // 두시간
+    private static final long MAX_INACTIVE_INTERVAL = 10 * 1000L; // 밀리초 단위 - 10초
+    public static final int MAX_AGE = 60 * 60 * 24 * 14; // 초단위, 14일
 
     public SessionManager() {
         this.startCleaner();
@@ -35,7 +37,7 @@ public class SessionManager {
             thread.setDaemon(true);
             return thread;
         });
-        cleaner.scheduleAtFixedRate(this::cleanExpiredSessions, 1, 1, TimeUnit.MINUTES);
+        cleaner.scheduleAtFixedRate(this::cleanExpiredSessions, 1, 10, TimeUnit.SECONDS);
     }
 
     public Session createSession() {
@@ -71,6 +73,13 @@ public class SessionManager {
 
     private void cleanExpiredSessions() {
         long now = System.currentTimeMillis();
-        sessionMap.entrySet().removeIf(entry -> (now - entry.getValue().getLastAccessedAt()) > MAX_INACTIVE_INTERVAL);
+        System.out.println("now : " + now);
+
+        sessionMap.entrySet().stream()
+            .filter(entry -> (now - entry.getValue().getLastAccessedAt()) >= MAX_INACTIVE_INTERVAL) // 접속안한지 10초 넘으면 지움
+            .peek(entry -> System.out.println("만료 세션 : " + entry.getValue().getSessionId()))
+            .map(Map.Entry::getKey)
+            .toList()
+            .forEach(sessionMap::remove);
     }
 }

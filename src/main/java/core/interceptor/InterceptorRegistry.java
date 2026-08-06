@@ -1,6 +1,6 @@
 package core.interceptor;
 
-import core.ResourceMapping;
+import core.routes.ResourceMapping;
 import core.model.Request;
 import core.model.Response;
 import core.session.SessionManager;

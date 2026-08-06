@@ -8,11 +8,7 @@ import core.model.Response;
 import core.session.Session;
 import core.type.ContentType;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +29,7 @@ import java.util.Map;
  * 2026-08-03        munke                   최초개정
  */
 public class BasicHandlerImpl extends Handler {
-    void getIndex(Request request, Response response) throws BareException, IOException {
+    void getIndex(Request request, Response response) throws BareException {
         String resourcePath = request.getResourcePath();
         if (resourcePath.isBlank())
             throw new BareException(404, "getFile failed: empty resourcePath.");
@@ -43,7 +39,7 @@ public class BasicHandlerImpl extends Handler {
         Map<String, String> model = new HashMap<>();
         Session session = request.getSession();
         if (session != null)
-            model.put("b-session-id", session.getSessionId());
+            model.put("B-SESSION-ID", session.getSessionId());
 
         response.setBody(new TemplateBody(page, model));
         response.setStatusCode(200);
@@ -59,7 +55,7 @@ public class BasicHandlerImpl extends Handler {
         ContentType contentType = ContentType.getByExtension(resourcePath);
 
         if (contentType == null)
-            throw new BareException(500, "serveHtml failed: cannot determine content type. resourcePath: " + resourcePath + "");
+            throw new BareException(500, "serveHtml failed: cannot determine content type. resourcePath: " + resourcePath);
 
         response.setBody(new FileBody(file, contentType));
         response.setStatusCode(200);

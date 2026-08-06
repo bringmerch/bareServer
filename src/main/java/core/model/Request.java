@@ -80,6 +80,10 @@ public class Request {
         this.headerMap = headerMap;
     }
 
+    public String getHeader(String key) {
+        return this.headerMap.get(key);
+    }
+
     public void setResourcePath(String ResourcePath) {
         this.resourcePath = ResourcePath;
     }

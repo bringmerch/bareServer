@@ -1,12 +1,13 @@
-package core;
+package core.routes;
 
+import core.BasicHandlerImpl;
+import core.Handler;
+import core.HandlerMethod;
 import core.model.Request;
 import core.model.Response;
 import core.type.MethodType;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -24,42 +25,36 @@ import java.util.Map;
  * --------- ------------------- -------------------------------
  * 2026-08-03        munke                   최초개정
  */
-public class HandlerMapping {
-    private final Map<Route, HandlerMethod> mappings = new HashMap<>();
-
+public class HandlerMapping extends Mapping<HandlerMethod> {
     public HandlerMapping() throws NoSuchMethodException {
-        // 현재 컨트롤러 1개.
+        // 컨트롤러 인스턴스 생성
         BasicHandlerImpl basicHandlerImpl = new BasicHandlerImpl();
 
-        // TODO : 메서드 선언에 애노테이션 붙여서 동적으로 만들기....
+        // 경로별 <컨트롤러 인스턴스, 메서드>
         mappings.put(
-            new Route("/index", MethodType.GET),
+            Route.INDEX,
             new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getIndex"))
         );
         mappings.put(
-            new Route("/panda", MethodType.GET), // TODO : 와일드카드
+            Route.PANDA,
             new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getFile"))
         );
         mappings.put(
-            new Route("/css/style", MethodType.GET), // TODO : 와일드카드
+            Route.STYLE,
             new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getFile"))
         );
         mappings.put(
-            new Route("/balance", MethodType.GET),
+            Route.BALANCE,
             new HandlerMethod(basicHandlerImpl, this.getMethod(basicHandlerImpl, "getBalance"))
         );
     }
 
-    private Method getMethod(Handler handler, String method) throws NoSuchMethodException {
-        return handler.getClass().getDeclaredMethod(method, Request.class, Response.class);
+    @Override
+    public HandlerMethod get(String path, MethodType methodType) {
+        return mappings.get(Route.from(path, methodType));
     }
 
-    public HandlerMethod findHandlerMethod(String path, MethodType methodType) {
-        HandlerMethod handlerMethod;
-
-        if ((handlerMethod = mappings.get(new Route(path, methodType))) != null)
-            return handlerMethod;
-        else
-            throw new IllegalArgumentException("findHandlerMethod failed: no such route for path : " + path);
+    private Method getMethod(Handler handler, String method) throws NoSuchMethodException {
+        return handler.getClass().getDeclaredMethod(method, Request.class, Response.class);
     }
 }

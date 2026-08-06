@@ -1,6 +1,8 @@
 package core;
 
 import core.interceptor.InterceptorRegistry;
+import core.routes.HandlerMapping;
+import core.routes.ResourceMapping;
 import core.session.SessionManager;
 
 /**

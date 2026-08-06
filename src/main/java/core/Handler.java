@@ -2,6 +2,7 @@ package core;
 
 import core.model.Request;
 import core.model.Response;
+import core.routes.HandlerMapping;
 import core.type.Constants;
 
 import java.io.File;
@@ -26,7 +27,9 @@ public abstract class Handler {
     protected final String RESOURCE_LOCATION = Constants.USER_DIR + Constants.RESOURCE_ROOT;
 
     public static void handle(HandlerMapping handlerMapping, Request request, Response response) throws InvocationTargetException, IllegalAccessException {
-        HandlerMethod handlerMethod = handlerMapping.findHandlerMethod(request.getPath(), request.getMethodType());
+        HandlerMethod handlerMethod = handlerMapping.get(request.getPath(), request.getMethodType());
+        if (handlerMethod == null)
+            throw new IllegalArgumentException("handle failed: no handlerMethod");
         handlerMethod.method().invoke(handlerMethod.handler(), request, response);
     }
 

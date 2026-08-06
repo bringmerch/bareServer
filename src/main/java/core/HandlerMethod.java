@@ -16,5 +16,6 @@ package core;
  * --------- ------------------- -------------------------------
  * 2026-08-03        munke                   최초개정
  */
+// 컨트롤러 인스턴스(싱글턴) + 메서드 meta
 public record HandlerMethod(Handler handler, java.lang.reflect.Method method) {
 }

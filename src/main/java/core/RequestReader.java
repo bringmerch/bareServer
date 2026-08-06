@@ -5,6 +5,7 @@ import core.model.Request;
 import core.type.Constants;
 import core.type.MethodType;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -28,7 +29,7 @@ import java.util.Map;
  * --------- ------------------- -------------------------------
  * 2026-08-04        munke                   최초개정
  */
-public class Reader {
+public class RequestReader {
     private static final String newline = Constants.newline;
 
     public static Request readRequest(BufferedReader bufferedReader) throws BareException, IOException {
@@ -77,6 +78,11 @@ public class Reader {
                 throw new IllegalArgumentException("parse failed: no ':' in header line. lines[i] is : " + lines[i]);
             if (keyValue[1].isBlank())
                 throw new IllegalArgumentException("parse failed: empty header field value. header field is : " + keyValue[0]);
+
+            if (keyValue[0].equalsIgnoreCase("Cookie")) {
+                String sessionId = getSessionId(keyValue[1]);
+                headerMap.put("B-SESSION-ID", sessionId); // 세션ID 쿠키는 B-SESSION-ID 헤더에 따로 담는다.
+            }
 
             headerMap.put(keyValue[0].trim(), keyValue[1].trim());
         }
@@ -130,5 +136,19 @@ public class Reader {
         request.setHeaderMap(headerMap);
 
         return request;
+    }
+
+    private static String getSessionId(String cookieValue) {
+        String key = "B-SESSION-ID=";
+        int startIndex = cookieValue.indexOf(key);
+
+        if (startIndex == -1)
+            return null;
+
+        int sessionIdStart = startIndex + key.length(); // sessionId 시작하는 index
+        int nextSemicolon = cookieValue.indexOf(";", sessionIdStart); // sessionId 오른쪽에서 제일 가까운 ";"의 위치
+        int sessionIdEnd = (nextSemicolon == -1) ? cookieValue.length(): nextSemicolon; // ";" 없으면 문자열 맨끝
+
+        return cookieValue.substring(sessionIdStart, sessionIdEnd);
     }
 }

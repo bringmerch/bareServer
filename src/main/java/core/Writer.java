@@ -35,7 +35,7 @@ public class Writer {
 
     public void writeResponse(Response response, OutputStream outputStream) throws IOException {
         ContentType contentType = null;
-        Body body = response.getBody();
+        Body<?> body = response.getBody();
 
         if (body != null)
             contentType = body.getContentType();
@@ -50,22 +50,23 @@ public class Writer {
         if (statusCode == 0)
             throw new IllegalArgumentException("writeHeader fail: statusCode is empty");
 
-        String header =
-            "HTTP/1.1 " + statusCode + newline;
+        StringBuilder header =
+            new StringBuilder("HTTP/1.1 " + statusCode + newline);
 
         HeaderMap headerMap = response.getHeader();
         for (String key : headerMap.keySet()) {
-            header += key + ": " + headerMap.get(key) + newline;
+            header.append(key).append(": ").append(headerMap.get(key)).append(newline);
         }
 
-        if (contentType != null)
-            header += "Content-Type: " + contentType.getMIMEType() + newline
-                    + "Transfer-Encoding: chunked" + newline;
+        if (contentType != null) {
+            header.append("Content-Type: ").append(contentType.getMIMEType()).append(newline);
+            header.append("Transfer-Encoding: chunked" + newline);
+        }
 
-        header += "Connection: close" + newline
-            + newline;
+        header.append("Connection: close" + newline);
+        header.append(newline);
 
-        outputStream.write(header.getBytes(charset));
+        outputStream.write(header.toString().getBytes(charset));
     }
 
     private void writeBody(Body body, OutputStream outputStream) throws IOException {
@@ -83,12 +84,13 @@ public class Writer {
         bufferedOutputStream.write(chunkSizeInHex.getBytes(charset));
         bufferedOutputStream.write(bytes, 0, len);
         bufferedOutputStream.write(newline.getBytes(charset));
+        bufferedOutputStream.flush();
     }
 
-    private void writeLastChunk(OutputStream outputStream) throws IOException {
+    private void writeLastChunk(BufferedOutputStream bufferedOutputStream) throws IOException {
         String lastChunk = "0" + newline + newline;
-        outputStream.write(lastChunk.getBytes(charset));
-        outputStream.flush();
+        bufferedOutputStream.write(lastChunk.getBytes(charset));
+        bufferedOutputStream.flush();
     }
 
     private void writeFile(BufferedInputStream bufferedInputStream, BufferedOutputStream bufferedOutputStream) throws IOException {
@@ -108,8 +110,8 @@ public class Writer {
             String content = stringBody.getContent();
             byte[] bytes = content.getBytes(charset);
 
-            writeChunk(bufferedOutputStream, bytes, bytes.length);
-            writeLastChunk(outputStream);
+            writeChunk(bufferedOutputStream, bytes, bytes.length); // StringBody는 한번에보낸다.
+            writeLastChunk(bufferedOutputStream);
 
             bufferedOutputStream.flush();
         } finally {
@@ -143,22 +145,23 @@ public class Writer {
             bufferedInputStream = new BufferedInputStream(new FileInputStream(templateBody.getContent()));
             bufferedOutputStream = new BufferedOutputStream(outputStream);
 
-            writeFile(bufferedInputStream, bufferedOutputStream);
-
             if (templateBody.getModel() != null) {
                 String json = map2json(templateBody.getModel());
 
+                // page_variables 전역객체 전달
                 String script = """
                     <script>
                         window.page_variables = %s;
-                    <script>
+                    </script>
                     """.formatted(json);
 
                 byte[] bytes = script.getBytes(charset);
-
+                // 페이지 상단에 전역객체 정보를 담은 script
                 writeChunk(bufferedOutputStream, bytes, bytes.length);
+                // html
+                writeFile(bufferedInputStream, bufferedOutputStream);
+                // 종료
                 writeLastChunk(bufferedOutputStream);
-
                 bufferedOutputStream.flush();
             }
         } finally {
@@ -169,7 +172,10 @@ public class Writer {
 
     public static String map2json(Map<String, String> map) {
         return map.entrySet().stream()
-            .map(e -> "\"" + e.getKey() + "\":" + e.getValue())
+            .map(e ->
+                "\"" + e.getKey() + "\"" +
+                ":"
+                + "\"" + e.getValue() + "\"")
             .collect(Collectors.joining(",", "{", "}"));
     }
 }

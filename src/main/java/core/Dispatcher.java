@@ -33,7 +33,7 @@ public class Dispatcher {
         try {
             // 요청읽기
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            Request request = Reader.readRequest(bufferedReader);
+            Request request = RequestReader.readRequest(bufferedReader);
             // 인터셉터
             if (!this.applicationContext.getInterceptorRegistry().doInterceptors(request, response))
                 throw new BareException(500, "intercept failed: interceptor returned true.");
@@ -42,10 +42,10 @@ public class Dispatcher {
             // 응답
             new Writer().writeResponse(response, outputStream);
         } catch (BareException e) {
-            System.out.println("dispatch failed: " + e.getMessage() + "");
+            System.out.println("dispatch failed: " + e.getMessage());
             new ErrorHandlerImpl().serveErrorPage(e.getStatusCode(), response);
         } catch (Exception e) {
-            System.out.println("dispatch failed: " + e.getMessage() + "");
+            System.out.println("dispatch failed: " + e.getMessage());
             new ErrorHandlerImpl().serveErrorPage(500, response);
         } finally {
             ResourceCloser.close(bufferedReader);

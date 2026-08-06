@@ -1,7 +1,6 @@
 package core.interceptor;
 
-import core.Route;
-import core.ResourceMapping;
+import core.routes.ResourceMapping;
 import core.model.Request;
 import core.model.Response;
 
@@ -30,7 +29,7 @@ public class ResourceMappingInterceptor implements Interceptor {
 
     @Override
     public boolean preHandle(Request request, Response response) {
-        String resourcePath = resourceMapping.findResourcePath(request.getPath(), request.getMethodType());
+        String resourcePath = resourceMapping.get(request.getPath(), request.getMethodType());
 
         if (resourcePath != null)
             request.setResourcePath(resourcePath);

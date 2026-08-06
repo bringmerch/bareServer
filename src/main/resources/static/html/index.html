@@ -8,7 +8,7 @@
     </head>
     <body>
         <header>
-            <h1>Hello, <span id="b-session-id"></span>!</h1>
+            <h1>Hello, <span id="B-SESSION-ID"></span>!</h1>
             <p>A simple HTML template to get you started.</p>
         </header>
 
@@ -29,13 +29,14 @@
         </footer>
     </body>
 </html>
-<script>
+<script type="text/javascript">
     const model = window.page_variables;
     let user;
-    if (model.b-session-id)
-        user = 'Session-id : ' + model.b-session-id;
+
+    if (model["B-SESSION-ID"])
+        user = 'Session-id : ' + model["B-SESSION-ID"];
     else
         user = 'Stranger'
 
-    document.getElementById("b-session-id").innerHTML = user + '!';
+    document.getElementById("B-SESSION-ID").innerHTML = user + '!';
 </script>
