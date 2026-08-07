@@ -22,6 +22,7 @@ public class BareServer {
     // application start
     public static void main(String[] args) throws Exception {
         try {
+            System.out.println("안녕....");
             new Connector().listen(new ApplicationContext());
         } catch (Exception e) {
             e.printStackTrace();

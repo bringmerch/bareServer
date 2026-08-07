@@ -19,16 +19,30 @@ java {
 
 application {
     mainClass = 'core.BareServer'
-    applicationDefaultJvmArgs = [ // run 시 console output 한글깨짐 방지
-        '-Dstdout.encoding=UTF-8',
+    applicationDefaultJvmArgs = [
+        '-Dstdout.encoding=UTF-8', // run 시 console output 한글깨짐 방지
         '-Dstderr.encoding=UTF-8'
+//        '-Dfile.encoding=UTF-8' // jvm이 디폴트로 쓰는 encoding set. java 18부터는 필요x.
+
     ]
+}
+
+tasks.jar {
+    manifest {
+        attributes(
+                'Main-Class': 'core.BareServer' // jar 파일 META-INF/MANIFEST.MF 안에 메인클래스 지정
+        )
+    }
+}
+
+tasks.withType(JavaCompile){
+    options.encoding = "UTF-8"
 }
 
 dependencies {
 //    testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    implementation 'org.jsoup:jsoup:1.17.2'
+//    implementation 'org.jsoup:jsoup:1.17.2'
 //    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
