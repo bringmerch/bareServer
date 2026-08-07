@@ -1,5 +1,7 @@
 package core;
 
+import java.nio.charset.Charset;
+
 /**
  *
  * Package Name: core

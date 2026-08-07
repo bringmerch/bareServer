@@ -33,18 +33,18 @@ public class Writer {
     private final String newline = Constants.newline;
     private final Charset charset = Constants.charset;
 
-    public void writeResponse(Response response, OutputStream outputStream) throws IOException {
+    public void writeResponse(Response response, BufferedOutputStream bufferedOutputStream) throws IOException {
         ContentType contentType = null;
         Body<?> body = response.getBody();
 
         if (body != null)
             contentType = body.getContentType();
 
-        writeHeader(response, contentType, outputStream);
-        writeBody(response.getBody(), outputStream);
+        writeHeader(response, contentType, bufferedOutputStream);
+        writeBody(response.getBody(), bufferedOutputStream);
     }
 
-    private void writeHeader(Response response, ContentType contentType, OutputStream outputStream) throws IOException {
+    private void writeHeader(Response response, ContentType contentType, BufferedOutputStream bufferedOutputStream) throws IOException {
         int statusCode = response.getStatusCode();
 
         if (statusCode == 0)
@@ -66,16 +66,17 @@ public class Writer {
         header.append("Connection: close" + newline);
         header.append(newline);
 
-        outputStream.write(header.toString().getBytes(charset));
+        bufferedOutputStream.write(header.toString().getBytes(charset));
+        bufferedOutputStream.flush();
     }
 
-    private void writeBody(Body body, OutputStream outputStream) throws IOException {
+    private void writeBody(Body body, BufferedOutputStream bufferedOutputStream) throws IOException {
         if (body instanceof StringBody stringBody)
-            write(stringBody, outputStream);
+            write(stringBody, bufferedOutputStream);
         else if (body instanceof TemplateBody templateBody)
-            write(templateBody, outputStream);
+            write(templateBody, bufferedOutputStream);
         else if (body instanceof FileBody fileBody)
-            write(fileBody, outputStream);
+            write(fileBody, bufferedOutputStream);
     }
 
     private void writeChunk(BufferedOutputStream bufferedOutputStream, byte[] bytes, int len) throws IOException {
@@ -102,71 +103,54 @@ public class Writer {
         }
     }
 
-    private void write(StringBody stringBody, OutputStream outputStream) throws IOException {
-        BufferedOutputStream bufferedOutputStream = null;
+    private void write(StringBody stringBody, BufferedOutputStream bufferedOutputStream) throws IOException {
+        String content = stringBody.getContent();
+        byte[] bytes = content.getBytes(charset);
 
-        try {
-            bufferedOutputStream = new BufferedOutputStream(outputStream);
-            String content = stringBody.getContent();
-            byte[] bytes = content.getBytes(charset);
-
-            writeChunk(bufferedOutputStream, bytes, bytes.length); // StringBody는 한번에보낸다.
-            writeLastChunk(bufferedOutputStream);
-
-            bufferedOutputStream.flush();
-        } finally {
-            ResourceCloser.close(bufferedOutputStream);
-        }
+        writeChunk(bufferedOutputStream, bytes, bytes.length); // StringBody는 한번에보낸다.
+        writeLastChunk(bufferedOutputStream);
     }
 
-    private void write(FileBody fileBody, OutputStream outputStream) throws IOException {
+    private void write(FileBody fileBody, BufferedOutputStream bufferedOutputStream) throws IOException {
         BufferedInputStream bufferedInputStream = null;
-        BufferedOutputStream bufferedOutputStream = null;
 
         try {
             bufferedInputStream = new BufferedInputStream(new FileInputStream(fileBody.getContent()));
-            bufferedOutputStream = new BufferedOutputStream(outputStream);
 
             writeFile(bufferedInputStream, bufferedOutputStream);
             writeLastChunk(bufferedOutputStream);
-
-            bufferedOutputStream.flush();
         } finally {
             ResourceCloser.close(bufferedInputStream);
-            ResourceCloser.close(bufferedOutputStream);
         }
     }
 
-    private void write(TemplateBody templateBody, OutputStream outputStream) throws IOException {
+    private void write(TemplateBody templateBody, BufferedOutputStream bufferedOutputStream) throws IOException {
         BufferedInputStream bufferedInputStream = null;
-        BufferedOutputStream bufferedOutputStream = null;
 
         try {
             bufferedInputStream = new BufferedInputStream(new FileInputStream(templateBody.getContent()));
-            bufferedOutputStream = new BufferedOutputStream(outputStream);
 
-            if (templateBody.getModel() != null) {
+            // 동적 정보 필요한 페이지
                 String json = map2json(templateBody.getModel());
 
-                // page_variables 전역객체 전달
-                String script = """
-                    <script>
-                        window.page_variables = %s;
-                    </script>
-                    """.formatted(json);
+            // page_variables 전역객체 전달
+            String script = """
+                <script>
+                    window.page_variables = %s;
+                </script>
+                """.formatted(json);
 
-                byte[] bytes = script.getBytes(charset);
-                // 페이지 상단에 전역객체 정보를 담은 script
-                writeChunk(bufferedOutputStream, bytes, bytes.length);
-                // html
-                writeFile(bufferedInputStream, bufferedOutputStream);
-                // 종료
-                writeLastChunk(bufferedOutputStream);
-                bufferedOutputStream.flush();
-            }
+            byte[] bytes = script.getBytes(charset);
+            // 페이지 상단에 전역객체 정보를 담은 script
+            writeChunk(bufferedOutputStream, bytes, bytes.length);
+
+            // html
+            writeFile(bufferedInputStream, bufferedOutputStream);
+
+            // 종료
+            writeLastChunk(bufferedOutputStream);
         } finally {
             ResourceCloser.close(bufferedInputStream);
-            ResourceCloser.close(bufferedOutputStream);
         }
     }
 

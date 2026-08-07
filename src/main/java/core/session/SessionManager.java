@@ -73,7 +73,7 @@ public class SessionManager {
 
     private void cleanExpiredSessions() {
         long now = System.currentTimeMillis();
-        System.out.println("now : " + now);
+        System.out.println("지금은 : " + now);
 
         sessionMap.entrySet().stream()
             .filter(entry -> (now - entry.getValue().getLastAccessedAt()) >= MAX_INACTIVE_INTERVAL) // 접속안한지 10초 넘으면 지움

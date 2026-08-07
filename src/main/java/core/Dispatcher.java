@@ -27,28 +27,22 @@ public class Dispatcher {
         this.applicationContext = applicationContext;
     }
 
-    public void dispatch(InputStream inputStream, OutputStream outputStream) throws IOException {
+    public void dispatch(Request request, BufferedOutputStream bufferedOutputStream) throws IOException {
         Response response = new Response();
-        BufferedReader bufferedReader = null;
         try {
-            // 요청읽기
-            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            Request request = RequestReader.readRequest(bufferedReader);
             // 인터셉터
             if (!this.applicationContext.getInterceptorRegistry().doInterceptors(request, response))
                 throw new BareException(500, "intercept failed: interceptor returned true.");
             // 컨트롤러
             Handler.handle(this.applicationContext.getHandlerMapping(), request, response);
             // 응답
-            new Writer().writeResponse(response, outputStream);
+            new Writer().writeResponse(response, bufferedOutputStream);
         } catch (BareException e) {
             System.out.println("dispatch failed: " + e.getMessage());
             new ErrorHandlerImpl().serveErrorPage(e.getStatusCode(), response);
         } catch (Exception e) {
             System.out.println("dispatch failed: " + e.getMessage());
             new ErrorHandlerImpl().serveErrorPage(500, response);
-        } finally {
-            ResourceCloser.close(bufferedReader);
         }
     }
 }
