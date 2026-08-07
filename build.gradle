@@ -20,8 +20,8 @@ java {
 application {
     mainClass = 'core.BareServer'
     applicationDefaultJvmArgs = [ // run 시 console output 한글깨짐 방지
-        '-Dsun.stdout.encoding=UTF-8',
-        '-Dsun.stderr.encoding=UTF-8'
+        '-Dstdout.encoding=UTF-8',
+        '-Dstderr.encoding=UTF-8'
     ]
 }
 
